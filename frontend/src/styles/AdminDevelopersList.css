@@ -1,0 +1,86 @@
+.admin-developers-container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f9fafb;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+.admin-developers-container h1 {
+  text-align: center;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+.message {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #10b981;
+  font-weight: bold;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table th, table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+table th {
+  background-color: #2563eb;
+  color: white;
+}
+
+table tr:hover {
+  background-color: #f1f5f9;
+}
+
+button {
+  margin-right: 5px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:nth-child(1) { background-color: #3b82f6; color: white; } /* Modifier */
+button:nth-child(2) { background-color: #ef4444; color: white; } /* Supprimer */
+
+.edit-form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  margin-top: 20px;
+}
+
+.edit-form h2 {
+  margin-bottom: 15px;
+  color: #111827;
+}
+
+.edit-form label {
+  display: block;
+  margin-bottom: 5px;
+  color: #374151;
+}
+
+.edit-form input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+

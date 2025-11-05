@@ -1,0 +1,90 @@
+.dashboard-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e293b;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 12px;
+}
+
+.dashboard-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.profile-btn, .logout-btn, .save-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.profile-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.profile-btn:hover {
+  background-color: #2563eb;
+}
+
+.logout-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+.profile-section {
+  margin-top: 30px;
+}
+
+.profile-section h2 {
+  margin-bottom: 15px;
+  color: #1e293b;
+}
+
+.profile-section p {
+  margin: 8px 0;
+  color: #334155;
+}
+
+textarea, input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0 16px 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  resize: vertical;
+}
+
+.save-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: #059669;
+}
+

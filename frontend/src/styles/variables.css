@@ -1,0 +1,14 @@
+:root {
+  --primary-color: #2563eb; /* Bleu professionnel */
+  --secondary-color: #1e40af;
+  --accent-color: #f59e0b;
+  --background-light: #f8fafc;
+  --background-dark: #0f172a;
+  --text-dark: #1e293b;
+  --text-light: #f8fafc;
+  --border-color: #e2e8f0;
+  --shadow-soft: 0 4px 10px rgba(0, 0, 0, 0.1);
+  --radius: 12px;
+  --transition: all 0.3s ease;
+  --font-family: 'Poppins', sans-serif;
+}
