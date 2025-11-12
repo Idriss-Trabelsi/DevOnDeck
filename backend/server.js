@@ -1,5 +1,5 @@
 // =========================
-// 📦 Importations
+//  Importations
 // =========================
 const express = require("express");
 const bcrypt = require("bcryptjs");
@@ -10,7 +10,7 @@ const Admin = require("./models/Admin");
 const Developer = require("./models/Developer");
 
 // =========================
-// ⚙️ Initialisation
+// Initialisation
 // =========================
 const app = express();
 app.use(express.json());
@@ -20,7 +20,7 @@ app.use(cors());
 connectDB();
 
 // =========================
-// 👑 Création auto de l’Admin (si absent)
+// Création auto de l’Admin (si absent)
 // =========================
 const createDefaultAdmin = async () => {
   try {
@@ -43,7 +43,7 @@ const createDefaultAdmin = async () => {
 createDefaultAdmin();
 
 // =========================
-// 🧩 US1 : Login Admin
+// US1 : Login Admin
 // =========================
 app.post("/api/auth/login", async (req, res) => {
   try {
@@ -73,25 +73,56 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // =========================
-// 🧩 US2 : Inscription Développeur
+//  US2 : signup dev
 // =========================
+
 app.post("/api/dev/signup", async (req, res) => {
   try {
-    const { name, email, password, skills } = req.body;
+    const { name, email, password, skills, bio, phone, address } = req.body;
 
+    // ✅ Vérification champs obligatoires
+    if (!name || !email || !password || !phone || !address) {
+      return res.status(400).json({ error: "Tous les champs requis doivent être remplis" });
+    }
+
+    // ✅ Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Email invalide" });
+    }
+
+    // 🔹 Validation mot de passe : minimum 6 caractères
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Le mot de passe doit contenir au moins 6 caractères" });
+    }
+
+    // ✅ Validation téléphone (minimum 8 chiffres)
+    if (phone.replace(/\s/g, "").length < 8) {
+      return res.status(400).json({ error: "Numéro de téléphone invalide (minimum 8 chiffres)" });
+    }
+
+    // ✅ Vérifie si l'email est déjà utilisé
     const existingDev = await Developer.findOne({ email });
     if (existingDev) {
       return res.status(400).json({ error: "Email déjà utilisé" });
     }
 
+    // 🔹 Vérifie si le mot de passe est déjà utilisé
+    const allDevs = await Developer.find({}, { password: 1 });
+    for (let dev of allDevs) {
+      const match = await bcrypt.compare(password, dev.password);
+      if (match) {
+        return res.status(400).json({ error: "Ce mot de passe est déjà utilisé par un autre compte" });
+      }
+    }
+
+    // ✅ Hachage du mot de passe et création du développeur
     const hashedPassword = await bcrypt.hash(password, 10);
     const newDev = await Developer.create({
-      name,
-      email,
-      password: hashedPassword,
-      skills,
+      name, email, password: hashedPassword, skills, bio, phone, address
     });
 
+    // ✅ Génération du token JWT
     const token = jwt.sign(
       { id: newDev._id, email: newDev.email, role: "developer" },
       "votre_secret_key",
@@ -107,16 +138,21 @@ app.post("/api/dev/signup", async (req, res) => {
         name: newDev.name,
         email: newDev.email,
         skills: newDev.skills,
-      },
+        bio: newDev.bio,
+        phone: newDev.phone,
+        address: newDev.address
+      }
     });
   } catch (error) {
-    console.error(error);
+    console.error("Erreur lors de l'inscription du développeur :", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
+
+
 // =========================
-// 🧩 US2 : Login Développeur
+//  US3 : Login Développeur
 // =========================
 app.post("/api/dev/login", async (req, res) => {
   try {
@@ -152,7 +188,7 @@ app.post("/api/dev/login", async (req, res) => {
 });
 
 // =========================
-// 🧩 US3 : Profil Admin
+//  US4 : Profil Admin
 // =========================
 app.get("/api/admin/profile/:id", async (req, res) => {
   try {
@@ -185,7 +221,7 @@ app.put("/api/admin/profile/:id", async (req, res) => {
 });
 
 // =========================
-// 🧩 US4 : Liste des Développeurs
+// US5 : Liste des Développeurs
 // =========================
 app.get("/api/admin/developers", async (req, res) => {
   try {
@@ -198,14 +234,15 @@ app.get("/api/admin/developers", async (req, res) => {
 });
 
 // =========================
-// 🧩 US5 : Modifier un développeur
+// 🧩 US6 : Modifier un développeur
 // =========================
 app.put("/api/admin/developers/:id", async (req, res) => {
   try {
-    const { name, email, skills } = req.body;
+    const { name, email, skills, phone, address } = req.body;
+
     const updatedDev = await Developer.findByIdAndUpdate(
       req.params.id,
-      { name, email, skills },
+      { name, email, skills, phone, address },
       { new: true }
     );
 
@@ -223,8 +260,9 @@ app.put("/api/admin/developers/:id", async (req, res) => {
   }
 });
 
+
 // =========================
-// 🧩 US6 : Supprimer un développeur
+// 🧩 US7 : Supprimer un développeur
 // =========================
 app.delete("/api/admin/developers/:id", async (req, res) => {
   try {
@@ -239,6 +277,7 @@ app.delete("/api/admin/developers/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "Erreur serveur" });
   }
 });
+
 
 // =========================
 // 🚀 Lancer le serveur

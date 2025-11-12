@@ -1,90 +1,143 @@
-/* Container général */
+/* src/styles/DevAuth.css */
+
 .dev-auth-container {
-  max-width: 450px;
-  margin: 50px auto;
-  padding: 30px;
-  background: #f9fafb;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 500px;
+  margin: 80px auto;
+  padding: 20px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  animation: fadeIn 0.8s ease-out;
 }
 
-/* Switcher Signup/Login */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .dev-auth-switch {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 2rem;
 }
 
 .dev-auth-switch button {
   flex: 1;
-  padding: 12px 0;
-  font-size: 16px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  border: 2px solid #3b82f6;
+  background: #ffffff;
+  color: #3b82f6;
   font-weight: 600;
   cursor: pointer;
-  border: none;
-  border-radius: 8px;
-  margin: 0 5px;
-  transition: all 0.2s ease;
-  background: #e5e7eb;
-  color: #111;
+  transition: all 0.3s ease;
 }
 
 .dev-auth-switch button.active {
-  background: #2563eb;
-  color: white;
+  background: #3b82f6;
+  color: #ffffff;
 }
 
-/* Formulaire */
+.dev-auth-switch button:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
 .dev-form {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
 .dev-form h2 {
   text-align: center;
-  margin-bottom: 20px;
-  color: #111827;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .dev-form input {
-  padding: 10px 12px;
-  margin-bottom: 15px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 15px;
-  transition: border-color 0.2s;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 .dev-form input:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Boutons */
 .dev-form button {
-  padding: 12px;
-  background: #10b981;
+  padding: 1rem 1.5rem;
+  margin-top: 0.5rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
   font-weight: 600;
+  font-size: 1rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s ease;
 }
 
 .dev-form button:hover {
-  background: #059669;
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 }
 
-/* Responsive */
-@media (max-width: 500px) {
+.dev-form button:active {
+  transform: translateY(0);
+}
+
+.error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+}
+
+.server-error {
+  padding: 0.75rem 1rem;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 480px) {
   .dev-auth-container {
-    margin: 30px 15px;
-    padding: 20px;
+    margin: 40px 15px;
+    padding: 15px;
   }
+
   .dev-auth-switch button {
-    font-size: 14px;
-    padding: 10px 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .dev-form input {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .dev-form button {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
   }
 }
+
+

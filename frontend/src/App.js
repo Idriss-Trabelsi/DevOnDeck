@@ -1,39 +1,65 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// Pages principales
-import Home from "./components/Home";                  // Page d'accueil
-import LoginAdmin from "./components/LoginAdmin";      // Login Admin
-import DevAuth from "./components/DevAuth";            // Inscription + Login Dev (fusionné)
+// Composants
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Home from "./components/Home";
 
-// Dashboards
-import AdminDashboard from "./components/Dashboard";   // Dashboard Admin
-import DevDashboard from "./components/DevDashboard";  // Dashboard Dev
+// Pages
+import LoginAdmin from "./pages/LoginAdmin";
+import DevAuth from "./pages/DevAuth";
+import AdminDashboard from "./pages/Dashboard";
+import AdminProfile from "./pages/AdminProfile";
+import AdminDevelopersList from "./pages/AdminDevelopersList";
+import DevDashboard from "./pages/DevDashboard";
+import DevProfile from "./pages/DevProfil";
 
-// Admin pages
-import AdminProfile from "./components/AdminProfile";                  // Gestion profil admin
-import AdminDevelopersList from "./components/AdminDevelopersList";   // Liste développeurs
-
-// Dev profile
-import DevProfile from "./components/DevProfil";                      // Page profil dev
+// Layout pour pages avec Navbar + Footer
+function Layout({ children }) {
+  return (
+    <>
+      <Navbar />
+      <main style={{ minHeight: "80vh" }}>{children}</main>
+      <Footer />
+    </>
+  );
+}
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        {/* Page d'accueil */}
-        <Route path="/" element={<Home />} />
+        {/* Pages avec Navbar/Footer */}
+        <Route 
+          path="/" 
+          element={
+            <Layout>
+              <Home />
+            </Layout>
+          } 
+        />
+        <Route 
+          path="/login-admin" 
+          element={
+            <Layout>
+              <LoginAdmin />
+            </Layout>
+          } 
+        />
+        <Route 
+          path="/dev-auth" 
+          element={
+            <Layout>
+              <DevAuth />
+            </Layout>
+          } 
+        />
 
-        {/* Authentification */}
-        <Route path="/login-admin" element={<LoginAdmin />} />
-        <Route path="/dev-auth" element={<DevAuth />} />  {/* Inscription + Login Dev */}
-
-        {/* Dashboard Admin */}
+        {/* Pages sans Navbar/Footer */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/profile" element={<AdminProfile />} />
         <Route path="/admin/developers" element={<AdminDevelopersList />} />
-
-        {/* Dashboard Développeur */}
         <Route path="/developer/dashboard" element={<DevDashboard />} />
         <Route path="/developer/profile" element={<DevProfile />} />
 
@@ -43,5 +69,4 @@ export default function App() {
     </Router>
   );
 }
-
 
