@@ -179,6 +179,9 @@ app.post("/api/dev/login", async (req, res) => {
         name: dev.name,
         email: dev.email,
         skills: dev.skills,
+        phone: dev.phone,      // ajout
+        address: dev.address,  // ajout
+        bio: dev.bio ,          // ajout
       },
     });
   } catch (err) {
@@ -186,6 +189,7 @@ app.post("/api/dev/login", async (req, res) => {
     res.status(500).json({ message: "Erreur serveur lors de la connexion" });
   }
 });
+
 
 // =========================
 //  US4 : Profil Admin
