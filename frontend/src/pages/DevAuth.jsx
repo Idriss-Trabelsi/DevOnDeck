@@ -100,7 +100,7 @@ export default function DevAuth() {
 
     if (!validateEmail(emailL)) tempErrors.email = "Email invalide";
     if (!validatePassword(passwordL))
-      tempErrors.password = "Le mot de passe doit contenir au moins 6 caractères";
+      tempErrors.password = "mot de passe incorrect";
 
     setErrorsLogin(tempErrors);
     if (Object.keys(tempErrors).length > 0) return;

@@ -6,8 +6,8 @@ export default function AdminDevelopersList() {
   const [developers, setDevelopers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingDev, setEditingDev] = useState(null);
-  const [message, setMessage] = useState({ text: "", type: "" }); // type: success | error
-  const [confirmDelete, setConfirmDelete] = useState(null); // id du dev à supprimer
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const apiBase = "http://localhost:5000/api";
 
@@ -87,7 +87,7 @@ export default function AdminDevelopersList() {
             <th>Email</th>
             <th>Compétences</th>
             <th>Téléphone</th>
-            <th>Adresse</th>
+            <th>Adresse</th> 
             <th>Actions</th>
           </tr>
         </thead>
@@ -99,9 +99,20 @@ export default function AdminDevelopersList() {
               <td>{dev.skills || "—"}</td>
               <td>{dev.phone || "—"}</td>
               <td>{dev.address || "—"}</td>
-              <td>
-                <button onClick={() => setEditingDev({ ...dev })}>Modifier</button>
-                <button onClick={() => setConfirmDelete(dev._id)}>Supprimer</button>
+
+              <td className="actions-cell">
+                <button 
+                  className="btn btn-primary btn-sm" 
+                  onClick={() => setEditingDev({ ...dev })}
+                >
+                  Modifier
+                </button>
+                <button 
+                  className="btn btn-danger btn-sm" 
+                  onClick={() => setConfirmDelete(dev._id)}
+                >
+                   Supprimer
+                </button>
               </td>
             </tr>
           ))}
@@ -113,47 +124,69 @@ export default function AdminDevelopersList() {
         <div className="edit-form-container">
           <h2>Modifier le développeur</h2>
           <form onSubmit={handleUpdate} className="edit-form">
-            <label>Nom :</label>
-            <input
-              name="name"
-              value={editingDev.name}
-              onChange={handleEditChange}
-              required
-            />
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Nom :</label>
+                <input
+                  name="name"
+                  value={editingDev.name}
+                  onChange={handleEditChange}
+                  required
+                />
+              </div>
 
-            <label>Email :</label>
-            <input
-              name="email"
-              type="email"
-              value={editingDev.email}
-              onChange={handleEditChange}
-              required
-            />
+              <div className="form-group">
+                <label>Email :</label>
+                <input
+                  name="email"
+                  type="email"
+                  value={editingDev.email}
+                  onChange={handleEditChange}
+                  required
+                />
+              </div>
 
-            <label>Compétences :</label>
-            <input
-              name="skills"
-              value={editingDev.skills || ""}
-              onChange={handleEditChange}
-            />
+              <div className="form-group">
+                <label>Compétences :</label>
+                <input
+                  name="skills"
+                  value={editingDev.skills || ""}
+                  onChange={handleEditChange}
+                />
+              </div>
 
-            <label>Numéro de téléphone :</label>
-            <input
-              name="phone"
-              value={editingDev.phone || ""}
-              onChange={handleEditChange}
-            />
+              <div className="form-group">
+                <label>Numéro de téléphone :</label>
+                <input
+                  name="phone"
+                  value={editingDev.phone || ""}
+                  onChange={handleEditChange}
+                />
+              </div>
 
-            <label>Adresse :</label>
-            <input
-              name="address"
-              value={editingDev.address || ""}
-              onChange={handleEditChange}
-            />
+              <div className="form-group">
+                <label>Adresse :</label>
+                <input
+                  name="address"
+                  value={editingDev.address || ""}
+                  onChange={handleEditChange}
+                />
+              </div>
+
+              
+            </div>
 
             <div className="form-buttons">
-              <button type="submit">💾 Enregistrer</button>
-              <button type="button" onClick={() => setEditingDev(null)}>❌ Annuler</button>
+              <button type="submit" className="btn btn-success">
+                 Enregistrer
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-secondary"
+                onClick={() => setEditingDev(null)}
+              >
+                 Annuler
+              </button>
             </div>
           </form>
         </div>
@@ -163,8 +196,20 @@ export default function AdminDevelopersList() {
       {confirmDelete && (
         <div className="confirm-delete">
           <p>Voulez-vous vraiment supprimer ce développeur ?</p>
-          <button onClick={() => handleDeleteConfirmed(confirmDelete)}>Oui</button>
-          <button onClick={() => setConfirmDelete(null)}>Non</button>
+          <div className="confirm-delete-buttons">
+            <button 
+              className="btn btn-danger" 
+              onClick={() => handleDeleteConfirmed(confirmDelete)}
+            >
+               Confirmer
+            </button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setConfirmDelete(null)}
+            >
+               Annuler
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -80,49 +80,63 @@ app.post("/api/dev/signup", async (req, res) => {
   try {
     const { name, email, password, skills, bio, phone, address } = req.body;
 
-    // ✅ Vérification champs obligatoires
+    // 🔹 Vérification champs obligatoires
     if (!name || !email || !password || !phone || !address) {
       return res.status(400).json({ error: "Tous les champs requis doivent être remplis" });
     }
 
-    // ✅ Validation email
+    // 🔹 Validation email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: "Email invalide" });
-    }
+    if (!emailRegex.test(email)) return res.status(400).json({ error: "Email invalide" });
 
-    // 🔹 Validation mot de passe : minimum 6 caractères
-    if (password.length < 6) {
-      return res.status(400).json({ error: "Le mot de passe doit contenir au moins 6 caractères" });
-    }
+    // 🔹 Validation mot de passe
+    if (password.length < 6) return res.status(400).json({ error: "Mot de passe trop court" });
 
-    // ✅ Validation téléphone (minimum 8 chiffres)
-    if (phone.replace(/\s/g, "").length < 8) {
-      return res.status(400).json({ error: "Numéro de téléphone invalide (minimum 8 chiffres)" });
-    }
+    // 🔹 Validation téléphone
+    if (phone.replace(/\D/g, "").length < 8) return res.status(400).json({ error: "Téléphone invalide" });
 
-    // ✅ Vérifie si l'email est déjà utilisé
-    const existingDev = await Developer.findOne({ email });
-    if (existingDev) {
-      return res.status(400).json({ error: "Email déjà utilisé" });
-    }
+    // 🔹 Vérifier si email existe
+    if (await Developer.findOne({ email })) return res.status(400).json({ error: "Email déjà utilisé" });
 
-    // 🔹 Vérifie si le mot de passe est déjà utilisé
+    // 🔹 Vérifier si mot de passe déjà utilisé
     const allDevs = await Developer.find({}, { password: 1 });
     for (let dev of allDevs) {
-      const match = await bcrypt.compare(password, dev.password);
-      if (match) {
-        return res.status(400).json({ error: "Ce mot de passe est déjà utilisé par un autre compte" });
+      if (dev.password && await bcrypt.compare(password, dev.password)) {
+        return res.status(400).json({ error: "Mot de passe déjà utilisé" });
       }
     }
 
-    // ✅ Hachage du mot de passe et création du développeur
+    // 🔹 Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 🔹 Conversion skills en string
+    // 🔹 Conversion skills en string sécurisée
+   
+    let skillsStr = "";
+    if (Array.isArray(skills)) {
+      skillsStr = skills.filter(s => typeof s === "string").join(", "); // filtrer non-string
+     
+      } else if (typeof skills === "string") {
+  skillsStr = skills;
+} else {
+  skillsStr = ""; // par défaut vide si autre type
+  }
+
+
+
+
+    // 🔹 Création du développeur
     const newDev = await Developer.create({
-      name, email, password: hashedPassword, skills, bio, phone, address
+      name,
+      email,
+      password: hashedPassword,
+      skills: skillsStr, 
+      bio: bio || "",
+      phone,
+      address
     });
 
-    // ✅ Génération du token JWT
+    // 🔹 Génération du token JWT
     const token = jwt.sign(
       { id: newDev._id, email: newDev.email, role: "developer" },
       "votre_secret_key",
@@ -143,11 +157,13 @@ app.post("/api/dev/signup", async (req, res) => {
         address: newDev.address
       }
     });
+
   } catch (error) {
-    console.error("Erreur lors de l'inscription du développeur :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur signup :", error);
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
@@ -189,7 +205,6 @@ app.post("/api/dev/login", async (req, res) => {
     res.status(500).json({ message: "Erreur serveur lors de la connexion" });
   }
 });
-
 
 // =========================
 //  US4 : Profil Admin
