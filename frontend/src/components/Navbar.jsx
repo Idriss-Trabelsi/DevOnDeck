@@ -1,5 +1,4 @@
 
-// src/components/Navbar.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Navbar.css";
@@ -23,7 +22,8 @@ function Navbar() {
   const navItems = [
     { path: "/", label: "Accueil", icon: "🏠" },
     { path: "/dev-auth", label: "Développeurs", icon: "👨‍💻" },
-    { path: "/login-admin", label: "Admin", icon: "🏢" }
+    { path: "/org-auth", label: "Organisations", icon: "🏢" },
+    { path: "/login-admin", label: "Admin", icon: "⚙️" }
   ];
 
   return (
@@ -135,4 +135,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;     
+export default Navbar;    

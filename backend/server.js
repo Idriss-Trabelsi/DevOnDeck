@@ -8,6 +8,8 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const Admin = require("./models/Admin");
 const Developer = require("./models/Developer");
+const Organization = require("./models/Organization");
+const JobOffer = require("./models/JobOffer");
 
 // =========================
 // Initialisation
@@ -20,7 +22,7 @@ app.use(cors());
 connectDB();
 
 // =========================
-// Création auto de l’Admin (si absent)
+// Création auto de l'Admin (si absent)
 // =========================
 const createDefaultAdmin = async () => {
   try {
@@ -75,7 +77,6 @@ app.post("/api/auth/login", async (req, res) => {
 // =========================
 //  US2 : signup dev
 // =========================
-
 app.post("/api/dev/signup", async (req, res) => {
   try {
     const { name, email, password, skills, bio, phone, address } = req.body;
@@ -109,21 +110,15 @@ app.post("/api/dev/signup", async (req, res) => {
     // 🔹 Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 🔹 Conversion skills en string
     // 🔹 Conversion skills en string sécurisée
-   
     let skillsStr = "";
     if (Array.isArray(skills)) {
-      skillsStr = skills.filter(s => typeof s === "string").join(", "); // filtrer non-string
-     
-      } else if (typeof skills === "string") {
-  skillsStr = skills;
-} else {
-  skillsStr = ""; // par défaut vide si autre type
-  }
-
-
-
+      skillsStr = skills.filter(s => typeof s === "string").join(", ");
+    } else if (typeof skills === "string") {
+      skillsStr = skills;
+    } else {
+      skillsStr = "";
+    }
 
     // 🔹 Création du développeur
     const newDev = await Developer.create({
@@ -164,9 +159,6 @@ app.post("/api/dev/signup", async (req, res) => {
   }
 });
 
-
-
-
 // =========================
 //  US3 : Login Développeur
 // =========================
@@ -195,9 +187,9 @@ app.post("/api/dev/login", async (req, res) => {
         name: dev.name,
         email: dev.email,
         skills: dev.skills,
-        phone: dev.phone,      // ajout
-        address: dev.address,  // ajout
-        bio: dev.bio ,          // ajout
+        phone: dev.phone,
+        address: dev.address,
+        bio: dev.bio,
       },
     });
   } catch (err) {
@@ -279,7 +271,6 @@ app.put("/api/admin/developers/:id", async (req, res) => {
   }
 });
 
-
 // =========================
 // 🧩 US7 : Supprimer un développeur
 // =========================
@@ -297,6 +288,188 @@ app.delete("/api/admin/developers/:id", async (req, res) => {
   }
 });
 
+// =========================
+// 🏢 ORGANIZATION AUTHENTICATION
+// =========================
+app.post("/api/org/signup", async (req, res) => {
+  try {
+    const { name, email, password, industry, size, website, description } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Nom, email et mot de passe requis" });
+    }
+
+    // Vérifier si l'email existe déjà
+    const existingOrg = await Organization.findOne({ email });
+    if (existingOrg) {
+      return res.status(400).json({ error: "Email déjà utilisé" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newOrg = await Organization.create({
+      name,
+      email,
+      password: hashedPassword,
+      industry,
+      size,
+      website,
+      description
+    });
+
+    const token = jwt.sign(
+      { id: newOrg._id, email: newOrg.email, role: "organization" },
+      "votre_secret_key",
+      { expiresIn: "24h" }
+    );
+
+    res.json({
+      success: true,
+      message: "Organisation créée avec succès",
+      token,
+      organization: {
+        id: newOrg._id,
+        name: newOrg.name,
+        email: newOrg.email,
+        industry: newOrg.industry,
+        size: newOrg.size
+      }
+    });
+
+  } catch (error) {
+    console.error("Erreur signup organization:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/org/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const org = await Organization.findOne({ email });
+
+    if (!org) return res.status(401).json({ message: "Organisation non trouvée" });
+
+    const isMatch = await bcrypt.compare(password, org.password);
+    if (!isMatch) return res.status(401).json({ message: "Mot de passe incorrect" });
+
+    const token = jwt.sign(
+      { id: org._id, email: org.email, role: "organization" },
+      "votre_secret_key",
+      { expiresIn: "24h" }
+    );
+
+    res.json({
+      success: true,
+      token,
+      organization: {
+        id: org._id,
+        name: org.name,
+        email: org.email,
+        industry: org.industry,
+        size: org.size,
+        website: org.website
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// =========================
+// 💼 JOB OFFERS MANAGEMENT
+// =========================
+
+// Créer une offre de poste
+app.post("/api/joboffers", async (req, res) => {
+  try {
+    const { title, description, requiredSkills, location, employmentType, salaryRange, organizationId } = req.body;
+
+    if (!title || !description || !organizationId) {
+      return res.status(400).json({ error: "Titre, description et organisation requis" });
+    }
+
+    const jobOffer = await JobOffer.create({
+      title,
+      description,
+      requiredSkills: Array.isArray(requiredSkills) ? requiredSkills : [requiredSkills],
+      location: location || "Remote",
+      employmentType: employmentType || "Full-time",
+      salaryRange: salaryRange || { min: 0, max: 0 },
+      organization: organizationId,
+      status: "active"
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Offre créée avec succès",
+      jobOffer
+    });
+
+  } catch (error) {
+    console.error("Erreur création offre:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Récupérer les offres d'une organisation
+app.get("/api/joboffers/organization/:orgId", async (req, res) => {
+  try {
+    const jobOffers = await JobOffer.find({ organization: req.params.orgId })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      jobOffers
+    });
+  } catch (error) {
+    console.error("Erreur récupération offres:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Modifier une offre
+app.put("/api/joboffers/:id", async (req, res) => {
+  try {
+    const updatedOffer = await JobOffer.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedOffer) {
+      return res.status(404).json({ error: "Offre non trouvée" });
+    }
+
+    res.json({
+      success: true,
+      message: "Offre mise à jour",
+      jobOffer: updatedOffer
+    });
+  } catch (error) {
+    console.error("Erreur mise à jour offre:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Supprimer une offre
+app.delete("/api/joboffers/:id", async (req, res) => {
+  try {
+    const deletedOffer = await JobOffer.findByIdAndDelete(req.params.id);
+
+    if (!deletedOffer) {
+      return res.status(404).json({ error: "Offre non trouvée" });
+    }
+
+    res.json({
+      success: true,
+      message: "Offre supprimée avec succès"
+    });
+  } catch (error) {
+    console.error("Erreur suppression offre:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // =========================
 // 🚀 Lancer le serveur
