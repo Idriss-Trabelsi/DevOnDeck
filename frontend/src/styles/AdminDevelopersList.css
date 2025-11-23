@@ -1,86 +1,403 @@
+/* AdminDevelopersList.css */
+
 .admin-developers-container {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 20px;
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #f9fafb;
-  border-radius: 12px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8fafc;
+  min-height: 100vh;
 }
 
 .admin-developers-container h1 {
+  color: #1e293b;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  font-size: 2.5rem;
   text-align: center;
-  color: #1f2937;
-  margin-bottom: 20px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+/* Messages */
 .message {
-  text-align: center;
-  margin-bottom: 15px;
-  color: #10b981;
-  font-weight: bold;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: none;
+  backdrop-filter: blur(10px);
 }
 
+.message.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-left: 4px solid #047857;
+}
+
+.message.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-left: 4px solid #b91c1c;
+}
+
+/* Table Styles */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
-  background: #fff;
-  border-radius: 8px;
+  background: white;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+  border: 1px solid #e2e8f0;
 }
 
-table th, table td {
-  padding: 12px 15px;
+thead {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+thead th {
+  color: white;
+  padding: 1.25rem 1rem;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-table th {
-  background-color: #2563eb;
+tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+tbody tr:hover {
+  background-color: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fefefe;
+}
+
+tbody tr:nth-child(even):hover {
+  background-color: #f8fafc;
+}
+
+tbody td {
+  padding: 1.25rem 1rem;
+  color: #475569;
+  font-size: 0.95rem;
+  max-width: 200px;
+  word-wrap: break-word;
+}
+
+/* Actions Cell */
+.actions-cell {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem !important;
+}
+
+/* Button Styles */
+.btn {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-sm {
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
 }
 
-table tr:hover {
-  background-color: #f1f5f9;
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
 }
 
-button {
-  margin-right: 5px;
-  padding: 6px 12px;
+.btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #64748b, #475569);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #475569, #374151);
+}
+
+/* Edit Form */
+.edit-form-container {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 12px 48px rgba(99, 102, 241, 0.1);
+  margin-top: 2rem;
+  border: 1px solid #e2e8f0;
+  backdrop-filter: blur(10px);
+}
+
+.edit-form-container h2 {
+  color: #1e293b;
+  margin-bottom: 2rem;
+  font-weight: 600;
+  text-align: center;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.75rem;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #94a3b8;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Delete Confirmation */
+.confirm-delete {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  z-index: 1000;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
+  min-width: 400px;
+  backdrop-filter: blur(10px);
+  border: 1px solid #e2e8f0;
 }
 
-button:nth-child(1) { background-color: #3b82f6; color: white; } /* Modifier */
-button:nth-child(2) { background-color: #ef4444; color: white; } /* Supprimer */
-
-.edit-form {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-  margin-top: 20px;
+.confirm-delete p {
+  margin-bottom: 2rem;
+  color: #1e293b;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
-.edit-form h2 {
-  margin-bottom: 15px;
-  color: #111827;
+.confirm-delete-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
 }
 
-.edit-form label {
-  display: block;
-  margin-bottom: 5px;
-  color: #374151;
+/* Loading Animation */
+.admin-developers-container:has(> div:only-child) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
 }
 
-.edit-form input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .admin-developers-container {
+    padding: 1rem;
+  }
+  
+  table {
+    font-size: 0.9rem;
+  }
+  
+  thead {
+    display: none;
+  }
+  
+  tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    background: white;
+  }
+  
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    border: none;
+    max-width: none;
+  }
+  
+  tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #1e293b;
+    margin-right: 1rem;
+  }
+  
+  .actions-cell {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 }
 
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .confirm-delete {
+    min-width: 90%;
+    margin: 1rem;
+  }
+  
+  .form-buttons {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .edit-form-container {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+}
+
+/* Animation for table rows */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+tbody tr {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Scrollbar styling for table */
+.table-container {
+  overflow-x: auto;
+  border-radius: 16px;
+}
+
+/* Custom scrollbar */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+/* Backdrop for modal */
+.confirm-delete-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+}

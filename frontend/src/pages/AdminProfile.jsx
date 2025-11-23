@@ -58,7 +58,7 @@ function AdminProfile() {
 
   return (
     <div className="admin-profile-container">
-      <h1>⚙️ Gestion Profil Admin</h1>
+      <h1> Gestion Profil Admin</h1>
       {message && <p className="message">{message}</p>}
       <form onSubmit={handleSubmit} className="admin-profile-form">
         <label>Nom :</label>
