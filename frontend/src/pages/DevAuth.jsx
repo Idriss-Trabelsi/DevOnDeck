@@ -2,195 +2,300 @@ import React, { useState } from "react";
 import "../styles/DevAuth.css";
 
 export default function DevAuth() {
-  const [mode, setMode] = useState("signup");
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    skills: "",
+    bio: "",
+    phone: "",
+    address: ""
+  });
 
-  // Champs inscription
-  const [name, setName] = useState("");
-  const [emailS, setEmailS] = useState("");
-  const [passwordS, setPasswordS] = useState("");
-  const [skillsS, setSkillsS] = useState("");
-  const [phoneS, setPhoneS] = useState("");
-  const [addressS, setAddressS] = useState("");
-
-  // Erreurs inscription
-  const [errorsSignup, setErrorsSignup] = useState({});
+  const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
-
-  // Champs connexion
-  const [emailL, setEmailL] = useState("");
-  const [passwordL, setPasswordL] = useState("");
-
-  // Erreurs connexion
-  const [errorsLogin, setErrorsLogin] = useState({});
-  const [serverErrorLogin, setServerErrorLogin] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const apiBase = "http://localhost:5000/api";
 
-  // -----------------
-  // Validation côté client
-  // -----------------
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validatePassword = (password) => password.length >= 6; // 🔹 minimum 6 caractères
+  const validatePassword = (password) => password.length >= 6;
   const validatePhone = (phone) => phone.replace(/\s/g, "").length >= 8;
 
-  // -----------------
-  // INSCRIPTION
-  // -----------------
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
+    }
+  };
+
+  const validateStep = (step) => {
+    const tempErrors = {};
+    
+    if (step === 1) {
+      if (!formData.name.trim()) tempErrors.name = "Le nom est requis";
+      if (!validateEmail(formData.email)) tempErrors.email = "Email invalide";
+      if (!validatePassword(formData.password)) 
+        tempErrors.password = "Le mot de passe doit contenir au moins 6 caractères";
+    }
+    
+    if (step === 2) {
+      if (!validatePhone(formData.phone)) 
+        tempErrors.phone = "Numéro de téléphone invalide (min 8 chiffres)";
+      if (!formData.address.trim()) tempErrors.address = "Adresse requise";
+    }
+
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
+  };
+
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => prev - 1);
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
     setServerError("");
-    let tempErrors = {};
+    
+    if (!validateStep(3)) return;
 
-    if (!name.trim()) tempErrors.name = "Le nom est requis";
-    if (!validateEmail(emailS)) tempErrors.email = "Email invalide";
-    if (!validatePassword(passwordS))
-      tempErrors.password = "Le mot de passe doit contenir au moins 6 caractères";
-    if (!validatePhone(phoneS))
-      tempErrors.phone = "Numéro de téléphone invalide (min 8 chiffres)";
-    if (!addressS.trim()) tempErrors.address = "Adresse requise";
-
-    setErrorsSignup(tempErrors);
-    if (Object.keys(tempErrors).length > 0) return;
+    setLoading(true);
 
     try {
+      console.log("🔄 Tentative d'inscription...");
+      
       const res = await fetch(`${apiBase}/dev/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email: emailS,
-          password: passwordS,
-          skills: skillsS,
-          phone: phoneS,
-          address: addressS,
-        }),
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        // message serveur fluide
-        if (data.error.toLowerCase().includes("mot de passe")) {
-          setErrorsSignup((prev) => ({ ...prev, password: data.error }));
-        } else if (data.error.toLowerCase().includes("email")) {
-          setErrorsSignup((prev) => ({ ...prev, email: data.error }));
+        if (data.error && data.error.toLowerCase().includes("mot de passe")) {
+          setErrors(prev => ({ ...prev, password: data.error }));
+        } else if (data.error && data.error.toLowerCase().includes("email")) {
+          setErrors(prev => ({ ...prev, email: data.error }));
         } else {
           setServerError(data.error || "Erreur lors de l'inscription");
         }
+        setLoading(false);
         return;
       }
 
-      // inscription réussie
-      localStorage.setItem("devData", JSON.stringify(data.developer));
-      localStorage.setItem("devToken", data.token);
-      window.location.href = "/developer/dashboard";
-    } catch (err) {
-      console.error(err);
-      setServerError("Erreur serveur lors de l'inscription");
-    }
-  };
-
-  // -----------------
-  // CONNEXION
-  // -----------------
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setServerErrorLogin("");
-    let tempErrors = {};
-
-    if (!validateEmail(emailL)) tempErrors.email = "Email invalide";
-    if (!validatePassword(passwordL))
-      tempErrors.password = "mot de passe incorrect";
-
-    setErrorsLogin(tempErrors);
-    if (Object.keys(tempErrors).length > 0) return;
-
-    try {
-      const res = await fetch(`${apiBase}/dev/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailL, password: passwordL }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (data.error.toLowerCase().includes("mot de passe")) {
-          setErrorsLogin((prev) => ({ ...prev, password: data.error }));
-        } else if (data.error.toLowerCase().includes("email")) {
-          setErrorsLogin((prev) => ({ ...prev, email: data.error }));
-        } else {
-          setServerErrorLogin(data.error || "Identifiants invalides");
-        }
-        return;
+      if (data.success) {
+        localStorage.setItem("developerData", JSON.stringify(data.developer));
+        localStorage.setItem("developerToken", data.token);
+        window.location.href = "/developer/dashboard";
+      } else {
+        setServerError("Erreur lors de l'inscription");
+        setLoading(false);
       }
-
-      localStorage.setItem("devData", JSON.stringify(data.developer));
-      localStorage.setItem("devToken", data.token);
-      window.location.href = "/developer/profile";
     } catch (err) {
-      console.error(err);
-      setServerErrorLogin("Erreur serveur lors de la connexion");
+      console.error("💥 Erreur:", err);
+      setServerError("Erreur serveur lors de l'inscription: " + err.message);
+      setLoading(false);
     }
   };
+
+  const navigateToLogin = () => {
+    window.location.href = "/unified-auth";
+  };
+
+  const progressPercentage = (currentStep / 3) * 100;
 
   return (
     <div className="dev-auth-container">
-      <div className="dev-auth-switch">
-        <button
-          className={mode === "signup" ? "active" : ""}
-          onClick={() => setMode("signup")}
-        >
-          S'inscrire
-        </button>
-        <button
-          className={mode === "login" ? "active" : ""}
-          onClick={() => setMode("login")}
-        >
-          Se connecter
-        </button>
+      <div className="auth-background">
+        <div className="floating-shapes">
+          <div className="shape shape-1"></div>
+          <div className="shape shape-2"></div>
+          <div className="shape shape-3"></div>
+        </div>
       </div>
 
-      {/* FORMULAIRE INSCRIPTION */}
-      {mode === "signup" ? (
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Inscription Développeur</h1>
+          <p>Rejoignez notre communauté de talents tech</p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="progress-container">
+          <div className="progress-bar">
+            <div 
+              className="progress-fill" 
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+          <div className="step-indicators">
+            <div className={`step-indicator ${currentStep >= 1 ? 'active' : ''} ${currentStep > 1 ? 'completed' : ''}`}>
+              1
+            </div>
+            <div className={`step-indicator ${currentStep >= 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
+              2
+            </div>
+            <div className={`step-indicator ${currentStep >= 3 ? 'active' : ''}`}>
+              3
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleSignup} className="dev-form">
-          <h2>Inscription développeur</h2>
-          {serverError && <p className="server-error">{serverError}</p>}
+          {serverError && <div className="server-error">{serverError}</div>}
 
-          <input placeholder="Nom complet" value={name} onChange={(e) => setName(e.target.value)} />
-          {errorsSignup.name && <p className="error">{errorsSignup.name}</p>}
+          {/* Étape 1: Informations de base */}
+          <div className={`form-step ${currentStep === 1 ? 'active' : ''}`}>
+            <div className="step-header">
+              <div className="step-icon"></div>
+              <h3>Informations personnelles</h3>
+              <p>Commencez par vos informations de base</p>
+            </div>
 
-          <input type="email" placeholder="Email" value={emailS} onChange={(e) => setEmailS(e.target.value)} />
-          {errorsSignup.email && <p className="error">{errorsSignup.email}</p>}
+            <input 
+              name="name"
+              placeholder="Nom complet" 
+              value={formData.name} 
+              onChange={handleInputChange}
+              className={errors.name ? "error" : ""}
+            />
+            {errors.name && <span className="error">{errors.name}</span>}
 
-          <input type="password" placeholder="Mot de passe" value={passwordS} onChange={(e) => setPasswordS(e.target.value)} />
-          {errorsSignup.password && <p className="error">{errorsSignup.password}</p>}
+            <input 
+              name="email"
+              type="email" 
+              placeholder="Email" 
+              value={formData.email} 
+              onChange={handleInputChange}
+              className={errors.email ? "error" : ""}
+            />
+            {errors.email && <span className="error">{errors.email}</span>}
 
-          <input placeholder="Compétences (ex: React, Node.js)" value={skillsS} onChange={(e) => setSkillsS(e.target.value)} />
+            <input 
+              name="password"
+              type="password" 
+              placeholder="Mot de passe" 
+              value={formData.password} 
+              onChange={handleInputChange}
+              className={errors.password ? "error" : ""}
+            />
+            {errors.password && <span className="error">{errors.password}</span>}
 
-          <input type="tel" placeholder="Numéro de téléphone" value={phoneS} onChange={(e) => setPhoneS(e.target.value)} />
-          {errorsSignup.phone && <p className="error">{errorsSignup.phone}</p>}
+            <div className="step-actions">
+              <button type="button" className="btn-next" onClick={nextStep}>
+                Suivant
+              </button>
+            </div>
+          </div>
 
-          <input placeholder="Adresse postale" value={addressS} onChange={(e) => setAddressS(e.target.value)} />
-          {errorsSignup.address && <p className="error">{errorsSignup.address}</p>}
+          {/* Étape 2: Contact et localisation */}
+          <div className={`form-step ${currentStep === 2 ? 'active' : ''}`}>
+            <div className="step-header">
+              <div className="step-icon">📍</div>
+              <h3>Contact et localisation</h3>
+              <p>Où peut-on vous contacter ?</p>
+            </div>
 
-          <button type="submit">S'inscrire et accéder au dashboard</button>
+            <input 
+              name="phone"
+              type="tel" 
+              placeholder="Numéro de téléphone" 
+              value={formData.phone} 
+              onChange={handleInputChange}
+              className={errors.phone ? "error" : ""}
+            />
+            {errors.phone && <span className="error">{errors.phone}</span>}
+
+            <input 
+              name="address"
+              placeholder="Adresse postale" 
+              value={formData.address} 
+              onChange={handleInputChange}
+              className={errors.address ? "error" : ""}
+            />
+            {errors.address && <span className="error">{errors.address}</span>}
+
+            <div className="step-actions">
+              <button type="button" className="btn-back" onClick={prevStep}>
+                Retour
+              </button>
+              <button type="button" className="btn-next" onClick={nextStep}>
+                Suivant
+              </button>
+            </div>
+          </div>
+
+          {/* Étape 3: Profil professionnel */}
+          <div className={`form-step ${currentStep === 3 ? 'active' : ''}`}>
+            <div className="step-header">
+              <div className="step-icon">💼</div>
+              <h3>Profil professionnel</h3>
+              <p>Présentez-vous aux recruteurs</p>
+            </div>
+
+            <input 
+              name="skills"
+              placeholder="Compétences (ex: React, Node.js)" 
+              value={formData.skills} 
+              onChange={handleInputChange}
+            />
+
+            <textarea 
+              name="bio"
+              placeholder="Bio (présentez-vous en quelques mots)" 
+              value={formData.bio} 
+              onChange={handleInputChange}
+              rows="3"
+            />
+
+            <div className="step-actions">
+              <button type="button" className="btn-back" onClick={prevStep}>
+                Retour
+              </button>
+              <button 
+                type="submit" 
+                className="btn-submit"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="loading-spinner"></div>
+                    Inscription...
+                  </>
+                ) : (
+                  "S'inscrire et accéder au dashboard"
+                )}
+              </button>
+            </div>
+          </div>
         </form>
-      ) : (
-        // FORMULAIRE CONNEXION
-        <form onSubmit={handleLogin} className="dev-form">
-          <h2>Connexion développeur</h2>
-          {serverErrorLogin && <p className="server-error">{serverErrorLogin}</p>}
 
-          <input type="email" placeholder="Email" value={emailL} onChange={(e) => setEmailL(e.target.value)} />
-          {errorsLogin.email && <p className="error">{errorsLogin.email}</p>}
-
-          <input type="password" placeholder="Mot de passe" value={passwordL} onChange={(e) => setPasswordL(e.target.value)} />
-          {errorsLogin.password && <p className="error">{errorsLogin.password}</p>}
-
-          <button type="submit">Se connecter et voir mon profil</button>
-        </form>
-      )}
+        <div className="auth-links">
+          <p>Déjà un compte ?</p>
+          <button 
+            onClick={navigateToLogin}
+            className="login-link"
+          >
+            Se connecter
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -7,7 +7,6 @@ import Footer from "./components/Footer";
 import Home from "./components/Home";
 
 // Pages
-import LoginAdmin from "./pages/LoginAdmin";
 import DevAuth from "./pages/DevAuth";
 import OrgAuth from "./pages/OrgAuth";
 import OrgDashboard from "./pages/OrgDashboard";
@@ -16,6 +15,7 @@ import AdminProfile from "./pages/AdminProfile";
 import AdminDevelopersList from "./pages/AdminDevelopersList";
 import DevDashboard from "./pages/DevDashboard";
 import DevProfile from "./pages/DevProfil";
+import UnifiedAuth from "./pages/UnifiedAuth";
 
 // Layout pour pages avec Navbar + Footer
 function Layout({ children }) {
@@ -42,10 +42,10 @@ export default function App() {
           } 
         />
         <Route 
-          path="/login-admin" 
+          path="/unified-auth" 
           element={
             <Layout>
-              <LoginAdmin />
+              <UnifiedAuth />
             </Layout>
           } 
         />
@@ -78,10 +78,9 @@ export default function App() {
         {/* Pages sans Navbar/Footer - Organization */}
         <Route path="/org/dashboard" element={<OrgDashboard />} />
 
-        {/* Catch-all */}
+        {/* Catch-all route pour les pages non trouvées */}
         <Route path="*" element={<Home />} />
       </Routes>
     </Router>
   );
 }
-

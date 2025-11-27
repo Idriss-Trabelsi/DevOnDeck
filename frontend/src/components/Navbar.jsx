@@ -18,14 +18,13 @@ function Navbar() {
   }, []);
 
   const isActive = (path) => location.pathname === path;
-
+  
   const navItems = [
-    { path: "/", label: "Accueil", icon: "🏠" },
-    { path: "/dev-auth", label: "Développeurs", icon: "👨‍💻" },
-    { path: "/org-auth", label: "Organisations", icon: "🏢" },
-    { path: "/login-admin", label: "Admin", icon: "⚙️" }
-  ];
-
+    { path: "/", label: "Accueil", icon: "" },
+    { path: "/dev-auth", label: "Espace Développeurs", icon: "👨‍💻" },
+    { path: "/org-auth", label: "Espace Organisations", icon: "🏢" },
+    { path: "/unified-auth", label: "Connexion", icon: "" } 
+    ];
   return (
     <nav className={`navbar ${isScrolled ? "scrolled" : ""}`}>
       <div className="navbar-container">

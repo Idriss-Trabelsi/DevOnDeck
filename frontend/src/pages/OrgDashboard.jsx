@@ -20,31 +20,46 @@ function OrgDashboard() {
     requiredSkills: "",
     location: "Remote",
     employmentType: "Full-time",
-    experienceLevel: "Mid-level"
   });
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("orgData"));
-    if (!data) {
-      navigate("/org-auth");
-      return;
-    }
-    setOrgData(data);
-    fetchJobOffers(data.id);
+    const checkAuth = () => {
+      const data = JSON.parse(localStorage.getItem("organizationData"));
+      const token = localStorage.getItem("organizationToken");
+      
+      console.log("🔍 Vérification auth organisation:", { 
+        data: data, 
+        token: token ? "PRÉSENT" : "MANQUANT" 
+      });
+      
+      if (!data || !token) {
+        console.log("❌ Organisation non authentifiée, redirection...");
+        window.location.href = "/unified-auth";
+        return;
+      }
+
+      console.log("✅ Organisation authentifiée:", data.name);
+      setOrgData(data);
+      fetchJobOffers(data.id);
+      setLoading(false);
+    };
+
+    checkAuth();
   }, [navigate]);
 
   const fetchJobOffers = async (orgId) => {
     try {
+      console.log("🔄 Récupération des offres pour orgId:", orgId);
       const res = await fetch(`http://localhost:5000/api/joboffers/organization/${orgId}`);
       const data = await res.json();
+      
+      console.log("📋 Offres reçues:", data);
       
       if (data.success) {
         setJobOffers(data.jobOffers || []);
       }
-      setLoading(false);
     } catch (error) {
-      console.error("Erreur:", error);
-      setLoading(false);
+      console.error("Erreur fetchJobOffers:", error);
     }
   };
 
@@ -72,7 +87,6 @@ function OrgDashboard() {
           requiredSkills: "",
           location: "Remote",
           employmentType: "Full-time",
-          experienceLevel: "Mid-level"
         });
         fetchJobOffers(orgData.id);
         setTimeout(() => setMessage(""), 3000);
@@ -93,7 +107,6 @@ function OrgDashboard() {
       requiredSkills: offer.requiredSkills?.join(", ") || "",
       location: offer.location,
       employmentType: offer.employmentType,
-      experienceLevel: offer.experienceLevel || "Mid-level"
     });
     setShowEditForm(true);
   };
@@ -122,7 +135,6 @@ function OrgDashboard() {
           requiredSkills: "",
           location: "Remote",
           employmentType: "Full-time",
-          experienceLevel: "Mid-level"
         });
         fetchJobOffers(orgData.id);
         setTimeout(() => setMessage(""), 3000);
@@ -171,9 +183,9 @@ function OrgDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("orgData");
-    localStorage.removeItem("orgToken");
-    navigate("/");
+    localStorage.removeItem("organizationData");
+    localStorage.removeItem("organizationToken");
+    window.location.href = "/";
   };
 
   // CALCUL DYNAMIQUE des statistiques
@@ -185,7 +197,7 @@ function OrgDashboard() {
       <div className="loading-screen">
         <div className="loader">
           <div className="loader-spinner"></div>
-          <p>Chargement de vos offres...</p>
+          <p>Chargement de votre espace organisation...</p>
         </div>
       </div>
     );
@@ -206,10 +218,9 @@ function OrgDashboard() {
 
           <div className="header-actions-pro">
             <div className="search-bar">
-              <input type="text" placeholder="Rechercher..." />
               <span className="search-icon">🔍</span>
+              <input type="text" placeholder="Rechercher..." />
             </div>
-            
             <div className="user-menu">
               <div className="user-avatar">
                 <span>🏢</span>
@@ -218,11 +229,11 @@ function OrgDashboard() {
                 <span className="user-name">{orgData?.name}</span>
                 <span className="user-role">Organization</span>
               </div>
-              <button className="logout-btn-visible" onClick={handleLogout}>
-                <span className="logout-icon">🚪</span>
-                <span className="logout-text">Déconnexion</span>
-              </button>
             </div>
+            <button className="logout-btn-visible" onClick={handleLogout}>
+              <span className="logout-icon">🚪</span>
+              <span className="logout-text">Déconnexion</span>
+            </button>
           </div>
         </div>
       </header>
@@ -243,7 +254,7 @@ function OrgDashboard() {
             </div>
             <div className="org-info-pro">
               <h3>{orgData?.name}</h3>
-              <p>{orgData?.industry}</p>
+              <p>{orgData?.industry || "Secteur non spécifié"}</p>
               <span className="org-badge">PRO</span>
             </div>
           </div>
@@ -274,22 +285,14 @@ function OrgDashboard() {
               <span className="nav-label">Candidats</span>
               <span className="nav-badge">0</span>
             </button>
-
-            <button 
-              className={`nav-item-pro ${activeTab === "analytics" ? "active" : ""}`}
-              onClick={() => setActiveTab("analytics")}
-            >
-              <span className="nav-icon">📈</span>
-              <span className="nav-label">Analytiques</span>
-            </button>
           </div>
 
           <div className="sidebar-footer">
             <button className="upgrade-card">
-              <div className="upgrade-icon">🚀</div>
+              <span className="upgrade-icon">🚀</span>
               <div className="upgrade-content">
                 <span>Passer à Premium</span>
-                <small>Plus de fonctionnalités</small>
+                <small>Débloquez plus de fonctionnalités</small>
               </div>
             </button>
           </div>
@@ -303,8 +306,8 @@ function OrgDashboard() {
               <h2>Tableau de bord</h2>
               <p>Bienvenue dans votre espace organisation</p>
               <div className="stats-preview">
-                <span className="stat-preview">📊 {totalOffers} offres totales</span>
-                <span className="stat-preview">🟢 {activeOffers} offres actives</span>
+                <span className="stat-preview">{totalOffers} offres</span>
+                <span className="stat-preview">{activeOffers} actives</span>
               </div>
             </div>
             <button 
@@ -320,61 +323,53 @@ function OrgDashboard() {
           <div className="stats-grid-pro">
             <div className="stat-card-pro">
               <div className="stat-header">
-                <span className="stat-icon">📊</span>
-                <span className="stat-trend positive">
-                  {totalOffers > 0 ? `+${totalOffers * 12}%` : '+0%'}
-                </span>
+                <div className="stat-icon">💼</div>
+                <span className="stat-trend positive">+12%</span>
               </div>
               <div className="stat-content">
                 <h3>{totalOffers}</h3>
                 <p>Offres totales</p>
               </div>
-              <div className="stat-footer">
-                Mise à jour en temps réel
-              </div>
+              <div className="stat-footer">Mise à jour à l'instant</div>
             </div>
 
             <div className="stat-card-pro">
               <div className="stat-header">
-                <span className="stat-icon">🟢</span>
-                <span className="stat-trend positive">
-                  {activeOffers > 0 ? `+${activeOffers * 8}%` : '+0%'}
-                </span>
+                <div className="stat-icon">🟢</div>
+                <span className="stat-trend positive">+5%</span>
               </div>
               <div className="stat-content">
                 <h3>{activeOffers}</h3>
                 <p>Offres actives</p>
               </div>
+              <div className="stat-footer">En ligne maintenant</div>
             </div>
 
             <div className="stat-card-pro">
               <div className="stat-header">
-                <span className="stat-icon">👀</span>
-                <span className="stat-trend positive">+0%</span>
+                <div className="stat-icon">👥</div>
+                <span className="stat-trend positive">+28%</span>
               </div>
               <div className="stat-content">
                 <h3>0</h3>
-                <p>Vues totales</p>
+                <p>Candidats</p>
               </div>
+              <div className="stat-footer">En attente de revue</div>
             </div>
+          </div>
 
-            <div className="stat-card-pro">
-              <div className="stat-header">
-                <span className="stat-icon">🤝</span>
-                <span className="stat-trend positive">+0%</span>
-              </div>
-              <div className="stat-content">
-                <h3>0%</h3>
-                <p>Taux de match</p>
-              </div>
-            </div>
+          {/* Actions rapides */}
+          <div className="actions-grid-pro" style={{display: 'none'}}>
+            {/* Cette section est cachée car non présente dans le CSS fourni */}
           </div>
 
           {/* Dernières offres avec boutons modifier/supprimer */}
           <div className="recent-section">
             <div className="section-header-pro">
-              <h3>Vos offres ({totalOffers})</h3>
-              <button className="secondary-btn">Voir tout →</button>
+              <h3>Vos offres récentes</h3>
+              <button className="secondary-btn">
+                Voir tout
+              </button>
             </div>
             
             {jobOffers.length === 0 ? (
@@ -409,11 +404,11 @@ function OrgDashboard() {
                     <div className="offer-stats">
                       <div className="stat">
                         <strong>0</strong>
-                        <span>vues</span>
+                        <span>Candidats</span>
                       </div>
                       <div className="stat">
                         <strong>0</strong>
-                        <span>candidats</span>
+                        <span>Entretiens</span>
                       </div>
                     </div>
                     {/* BOUTONS MODIFIER ET SUPPRIMER */}
@@ -476,6 +471,7 @@ function OrgDashboard() {
                       <option value="Full-time">Temps plein</option>
                       <option value="Part-time">Temps partiel</option>
                       <option value="Contract">Contrat</option>
+                      <option value="Internship">Stage</option>
                     </select>
                   </div>
                   <div className="form-group-pro full-width">
@@ -565,6 +561,7 @@ function OrgDashboard() {
                       <option value="Full-time">Temps plein</option>
                       <option value="Part-time">Temps partiel</option>
                       <option value="Contract">Contrat</option>
+                      <option value="Internship">Stage</option>
                     </select>
                   </div>
                   <div className="form-group-pro full-width">
