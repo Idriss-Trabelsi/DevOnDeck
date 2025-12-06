@@ -290,7 +290,7 @@ function DevDashboard() {
             <button className="action-btn" onClick={handleViewProfile}>
               👀 Voir mon profil public
             </button>
-            <button className="action-btn">
+            <button className="action-btn" onClick={() => navigate("/job-offers")}>
               💼 Voir les offres d'emploi
             </button>
             <button className="action-btn">

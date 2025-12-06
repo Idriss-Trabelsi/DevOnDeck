@@ -490,19 +490,81 @@ app.post("/api/org/signup", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 // =========================
 // 💼 JOB OFFERS MANAGEMENT
 // =========================
 
-// Créer une offre de poste
+// ⚠️ IMPORTANT: Les routes spécifiques AVANT les routes avec paramètres dynamiques
+
+// 1️⃣ Récupérer TOUTES les offres (pour la page commune) - DOIT ÊTRE EN PREMIER
+app.get("/api/joboffers/all", async (req, res) => {
+  try {
+    console.log("📋 Récupération de toutes les offres...");
+    
+    const jobOffers = await JobOffer.find()
+      .populate('organization', 'name email industry website description size')
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ ${jobOffers.length} offre(s) trouvée(s)`);
+    
+    // Log pour debug - voir le contenu
+    jobOffers.forEach(offer => {
+      console.log(`  - ${offer.title} | Org: ${offer.organization?.name || 'NON DÉFINIE'} | Status: ${offer.status}`);
+    });
+
+    res.json({
+      success: true,
+      jobOffers
+    });
+  } catch (error) {
+    console.error("❌ Erreur récupération toutes les offres:", error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
+// 2️⃣ Récupérer les offres d'une organisation spécifique
+app.get("/api/joboffers/organization/:orgId", async (req, res) => {
+  try {
+    console.log("📋 Récupération des offres de l'organisation:", req.params.orgId);
+    
+    const jobOffers = await JobOffer.find({ organization: req.params.orgId })
+      .populate('organization', 'name email industry')
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ ${jobOffers.length} offre(s) trouvée(s) pour cette organisation`);
+
+    res.json({
+      success: true,
+      jobOffers
+    });
+  } catch (error) {
+    console.error("Erreur récupération offres:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 3️⃣ Créer une offre de poste
 app.post("/api/joboffers", async (req, res) => {
   try {
     const { title, description, requiredSkills, location, employmentType, salaryRange, organizationId } = req.body;
 
+    console.log("📝 Création d'offre - OrganizationId reçu:", organizationId);
+
     if (!title || !description || !organizationId) {
       return res.status(400).json({ error: "Titre, description et organisation requis" });
     }
+
+    // Vérifier que l'organisation existe
+    const orgExists = await Organization.findById(organizationId);
+    if (!orgExists) {
+      console.error("❌ Organisation non trouvée:", organizationId);
+      return res.status(404).json({ error: "Organisation non trouvée" });
+    }
+
+    console.log("✅ Organisation trouvée:", orgExists.name);
 
     const jobOffer = await JobOffer.create({
       title,
@@ -515,42 +577,32 @@ app.post("/api/joboffers", async (req, res) => {
       status: "active"
     });
 
+    console.log("✅ Offre créée avec succès:", jobOffer._id);
+
+    // Populate l'organisation avant de renvoyer
+    const populatedOffer = await JobOffer.findById(jobOffer._id)
+      .populate('organization', 'name email industry');
+
     res.status(201).json({
       success: true,
       message: "Offre créée avec succès",
-      jobOffer
+      jobOffer: populatedOffer
     });
 
   } catch (error) {
-    console.error("Erreur création offre:", error);
+    console.error("❌ Erreur création offre:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Récupérer les offres d'une organisation
-app.get("/api/joboffers/organization/:orgId", async (req, res) => {
-  try {
-    const jobOffers = await JobOffer.find({ organization: req.params.orgId })
-      .sort({ createdAt: -1 });
-
-    res.json({
-      success: true,
-      jobOffers
-    });
-  } catch (error) {
-    console.error("Erreur récupération offres:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Modifier une offre
+// 4️⃣ Modifier une offre
 app.put("/api/joboffers/:id", async (req, res) => {
   try {
     const updatedOffer = await JobOffer.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
-    );
+    ).populate('organization', 'name email industry');
 
     if (!updatedOffer) {
       return res.status(404).json({ error: "Offre non trouvée" });
@@ -567,7 +619,7 @@ app.put("/api/joboffers/:id", async (req, res) => {
   }
 });
 
-// Supprimer une offre
+// 5️⃣ Supprimer une offre
 app.delete("/api/joboffers/:id", async (req, res) => {
   try {
     const deletedOffer = await JobOffer.findByIdAndDelete(req.params.id);
@@ -585,6 +637,34 @@ app.delete("/api/joboffers/:id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// 6️⃣ Récupérer une offre spécifique par ID - DOIT ÊTRE EN DERNIER
+app.get("/api/joboffers/:id", async (req, res) => {
+  try {
+    const jobOffer = await JobOffer.findById(req.params.id)
+      .populate('organization', 'name email industry website description');
+
+    if (!jobOffer) {
+      return res.status(404).json({ 
+        success: false,
+        error: "Offre non trouvée" 
+      });
+    }
+
+    res.json({
+      success: true,
+      jobOffer
+    });
+  } catch (error) {
+    console.error("Erreur récupération offre:", error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
+
 
 // =========================
 // 🚀 Lancer le serveur

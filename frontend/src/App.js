@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./components/Home";
-
+import JobOffers from "./components/JobOffers";
 // Pages
 import DevAuth from "./pages/DevAuth";
 import OrgAuth from "./pages/OrgAuth";
@@ -77,6 +77,8 @@ export default function App() {
 
         {/* Pages sans Navbar/Footer - Organization */}
         <Route path="/org/dashboard" element={<OrgDashboard />} />
+        {/* Route commune - Offres d'emploi */}
+        <Route path="/job-offers" element={<JobOffers />} />
 
         {/* Catch-all route pour les pages non trouvées */}
         <Route path="*" element={<Home />} />

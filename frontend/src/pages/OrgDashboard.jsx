@@ -286,6 +286,13 @@ function OrgDashboard() {
               <span className="nav-badge">0</span>
             </button>
           </div>
+          <button 
+           className="nav-item-pro"
+            onClick={() => navigate("/job-offers")}
+          >
+         <span className="nav-icon">🌐</span>
+         <span className="nav-label">Toutes les offres</span>
+         </button>
 
           <div className="sidebar-footer">
             <button className="upgrade-card">
