@@ -10,6 +10,8 @@ const Admin = require("./models/Admin");
 const Developer = require("./models/Developer");
 const Organization = require("./models/Organization");
 const JobOffer = require("./models/JobOffer");
+const Application = require("./models/Application");
+
 
 // =========================
 // Initialisation
@@ -665,6 +667,193 @@ app.get("/api/joboffers/:id", async (req, res) => {
 });
 
 
+// =========================
+// 📬 APPLICATION ROUTES - COMPLÈTES
+// =========================
+
+
+// 🆕 POST : Candidature enrichie
+app.post("/api/applications/enriched", async (req, res) => {
+  try {
+    const {
+      jobOfferId,
+      developerId,
+      coverLetter,
+      expectedSalary,
+      availabilityDate,
+      portfolioUrl,
+      resumeUrl
+    } = req.body;
+
+    console.log("📥 Candidature enrichie reçue");
+
+    if (!jobOfferId || !developerId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Données manquantes" 
+      });
+    }
+
+    const jobOffer = await JobOffer.findById(jobOfferId);
+    if (!jobOffer) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Offre non trouvée" 
+      });
+    }
+
+    const existingApp = await Application.findOne({
+      jobOffer: jobOfferId,
+      developer: developerId
+    });
+
+    if (existingApp) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Déjà postulé" 
+      });
+    }
+
+    const application = new Application({
+      jobOffer: jobOfferId,
+      developer: developerId,
+      organization: jobOffer.organization,
+      coverLetter: coverLetter || "",
+      expectedSalary: expectedSalary || 0,
+      availabilityDate: availabilityDate || "",
+      portfolioUrl: portfolioUrl || "",
+      resumeUrl: resumeUrl || "",
+      status: "pending"
+    });
+
+    await application.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Candidature envoyée",
+      application: application
+    });
+
+  } catch (error) {
+    console.error("❌ Erreur:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Erreur serveur" 
+    });
+  }
+});
+
+// 📋 GET : Candidatures d'un développeur
+app.get("/api/applications/developer/:id", async (req, res) => {
+  try {
+    const applications = await Application.find({ 
+      developer: req.params.id 
+    })
+      .populate("jobOffer", "title description location employmentType")
+      .populate("organization", "name industry")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      applications: applications
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 🏢 GET : Candidatures d'une organisation
+app.get("/api/applications/organization/:id", async (req, res) => {
+  try {
+    const applications = await Application.find({ 
+      organization: req.params.id 
+    })
+      .populate("developer", "name email skills bio phone address")
+      .populate("jobOffer", "title location employmentType")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      applications: applications
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 👁️ GET : Une candidature complète
+app.get("/api/applications/:id", async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id)
+      .populate("developer", "name email skills bio phone address")
+      .populate("jobOffer", "title description location employmentType")
+      .populate("organization", "name email industry");
+
+    if (!application) {
+      return res.status(404).json({ error: "Non trouvée" });
+    }
+
+    res.json({
+      success: true,
+      application: application
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ✏️ PUT : Mettre à jour le statut
+app.put("/api/applications/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    const updateData = { status };
+    
+    if (status === "reviewed") {
+      updateData.viewedByOrganization = true;
+    }
+
+    const updatedApp = await Application.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedApp) {
+      return res.status(404).json({ error: "Non trouvée" });
+    }
+
+    res.json({
+      success: true,
+      message: "Statut mis à jour",
+      application: updatedApp
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 🔍 GET : Vérifier si déjà postulé
+app.get("/api/applications/check/:developerId/:jobOfferId", async (req, res) => {
+  try {
+    const application = await Application.findOne({
+      developer: req.params.developerId,
+      jobOffer: req.params.jobOfferId
+    });
+
+    res.json({
+      success: true,
+      hasApplied: !!application
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // =========================
 // 🚀 Lancer le serveur

@@ -1020,4 +1020,73 @@
   .offer-actions {
     flex-direction: column;
   }
+  /* Stats preview */
+.stats-preview {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.stat-preview {
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  border: 1px solid #eaeaea;
+}
+
+/* Applications preview */
+.applications-preview {
+  margin-top: 20px;
+}
+
+.preview-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 25px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.preview-icon {
+  font-size: 48px;
+}
+
+.preview-content h4 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+}
+
+.preview-content p {
+  margin: 0 0 15px 0;
+  opacity: 0.9;
+}
+
+.view-applications-btn {
+  padding: 10px 20px;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.3s;
+}
+
+.view-applications-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Nav badge for applications */
+.nav-badge {
+  background: #ff4757;
+  color: white;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
 }

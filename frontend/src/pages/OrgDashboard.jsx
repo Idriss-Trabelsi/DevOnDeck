@@ -6,6 +6,7 @@ function OrgDashboard() {
   const navigate = useNavigate();
   const [orgData, setOrgData] = useState(null);
   const [jobOffers, setJobOffers] = useState([]);
+  const [applicationsCount, setApplicationsCount] = useState(0);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
@@ -41,6 +42,7 @@ function OrgDashboard() {
       console.log("✅ Organisation authentifiée:", data.name);
       setOrgData(data);
       fetchJobOffers(data.id);
+      fetchApplicationsCount(data.id);
       setLoading(false);
     };
 
@@ -60,6 +62,19 @@ function OrgDashboard() {
       }
     } catch (error) {
       console.error("Erreur fetchJobOffers:", error);
+    }
+  };
+
+  const fetchApplicationsCount = async (orgId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/applications/organization/${orgId}`);
+      const data = await res.json();
+      
+      if (data.success) {
+        setApplicationsCount(data.applications?.length || 0);
+      }
+    } catch (error) {
+      console.error("Erreur fetchApplicationsCount:", error);
     }
   };
 
@@ -277,22 +292,24 @@ function OrgDashboard() {
               <span className="nav-badge">{totalOffers}</span>
             </button>
 
+            {/* AJOUT DU BOUTON CANDIDATURES */}
             <button 
-              className={`nav-item-pro ${activeTab === "candidates" ? "active" : ""}`}
-              onClick={() => setActiveTab("candidates")}
+              className={`nav-item-pro ${activeTab === "applications" ? "active" : ""}`}
+              onClick={() => navigate("/org/applications")}
             >
-              <span className="nav-icon">👥</span>
-              <span className="nav-label">Candidats</span>
-              <span className="nav-badge">0</span>
+              <span className="nav-icon">📬</span>
+              <span className="nav-label">Candidatures</span>
+              <span className="nav-badge">{applicationsCount}</span>
             </button>
           </div>
+          
           <button 
-           className="nav-item-pro"
+            className="nav-item-pro"
             onClick={() => navigate("/job-offers")}
           >
-         <span className="nav-icon">🌐</span>
-         <span className="nav-label">Toutes les offres</span>
-         </button>
+            <span className="nav-icon">🌐</span>
+            <span className="nav-label">Toutes les offres</span>
+          </button>
 
           <div className="sidebar-footer">
             <button className="upgrade-card">
@@ -315,6 +332,7 @@ function OrgDashboard() {
               <div className="stats-preview">
                 <span className="stat-preview">{totalOffers} offres</span>
                 <span className="stat-preview">{activeOffers} actives</span>
+                <span className="stat-preview">{applicationsCount} candidatures</span>
               </div>
             </div>
             <button 
@@ -354,12 +372,12 @@ function OrgDashboard() {
 
             <div className="stat-card-pro">
               <div className="stat-header">
-                <div className="stat-icon">👥</div>
+                <div className="stat-icon">📬</div>
                 <span className="stat-trend positive">+28%</span>
               </div>
               <div className="stat-content">
-                <h3>0</h3>
-                <p>Candidats</p>
+                <h3>{applicationsCount}</h3>
+                <p>Candidatures reçues</p>
               </div>
               <div className="stat-footer">En attente de revue</div>
             </div>
@@ -374,7 +392,10 @@ function OrgDashboard() {
           <div className="recent-section">
             <div className="section-header-pro">
               <h3>Vos offres récentes</h3>
-              <button className="secondary-btn">
+              <button 
+                className="secondary-btn"
+                onClick={() => setActiveTab("offers")}
+              >
                 Voir tout
               </button>
             </div>
@@ -393,7 +414,7 @@ function OrgDashboard() {
               </div>
             ) : (
               <div className="offers-grid-pro">
-                {jobOffers.map((offer) => (
+                {jobOffers.slice(0, 4).map((offer) => (
                   <div key={offer._id} className="offer-card-pro">
                     <div className="offer-header">
                       <h4>{offer.title}</h4>
@@ -440,6 +461,36 @@ function OrgDashboard() {
               </div>
             )}
           </div>
+
+          {/* Section Candidatures récentes */}
+          {applicationsCount > 0 && (
+            <div className="recent-section">
+              <div className="section-header-pro">
+                <h3>Candidatures récentes</h3>
+                <button 
+                  className="secondary-btn"
+                  onClick={() => navigate("/org/applications")}
+                >
+                  Voir toutes
+                </button>
+              </div>
+              <div className="applications-preview">
+                <div className="preview-card">
+                  <div className="preview-icon">📬</div>
+                  <div className="preview-content">
+                    <h4>Vous avez {applicationsCount} candidature(s)</h4>
+                    <p>Consultez et gérez les candidatures pour vos offres</p>
+                    <button 
+                      className="view-applications-btn"
+                      onClick={() => navigate("/org/applications")}
+                    >
+                      Voir les candidatures
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 

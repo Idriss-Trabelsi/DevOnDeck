@@ -1,0 +1,324 @@
+.applications-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.applications-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.applications-header h1 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.applications-header p {
+  color: #666;
+}
+
+.applications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.application-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border: 1px solid #eaeaea;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.application-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.app-header h3 {
+  margin: 0;
+  color: #333;
+  flex: 1;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.reviewed {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.accepted {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.app-organization {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.app-details {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.detail:last-child {
+  margin-bottom: 0;
+}
+
+.cover-letter-preview {
+  background: #fff;
+  border-left: 3px solid #4a6fa5;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  border-radius: 0 8px 8px 0;
+}
+
+.cover-letter-preview p {
+  margin: 5px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.btn-view-details {
+  width: 100%;
+  padding: 10px;
+  background: #4a6fa5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-view-details:hover {
+  background: #3a5a85;
+}
+
+.empty-applications {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.empty-applications h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.empty-applications p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.btn-browse-offers {
+  padding: 12px 30px;
+  background: #4a6fa5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-browse-offers:hover {
+  background: #3a5a85;
+}
+
+.application-card-enhanced {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.application-card-enhanced:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-color: #4f46e5;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+  flex: 1;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-badge.pending {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.status-badge.reviewed {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+  border: 1px solid rgba(13, 110, 253, 0.2);
+}
+
+.status-badge.accepted {
+  background: rgba(25, 135, 84, 0.1);
+  color: #198754;
+  border: 1px solid rgba(25, 135, 84, 0.2);
+}
+
+.status-badge.rejected {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.company-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  color: #666;
+  font-size: 14px;
+}
+
+.company-icon {
+  font-size: 16px;
+}
+
+.application-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail strong {
+  font-size: 12px;
+  color: #666;
+}
+
+.detail span {
+  color: #333;
+  font-weight: 500;
+}
+
+.detail.enriched {
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #4f46e5;
+}
+
+.detail.viewed {
+  background: #e8f4fd;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #0d6efd;
+}
+
+.cover-letter-preview {
+  margin: 15px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.cover-letter-preview strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-size: 14px;
+}
+
+.cover-letter-preview p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.card-actions {
+  margin-top: 20px;
+}
+
+.btn-view-offer {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.btn-view-offer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+}

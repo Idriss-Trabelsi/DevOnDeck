@@ -299,6 +299,9 @@ function DevDashboard() {
             <button className="action-btn">
               🔔 Paramètres de notifications
             </button>
+            <button className="action-btn" onClick={() => navigate("/developer/applications")}>
+              📬 Mes Candidatures
+              </button>
           </div>
         </div>
       </section>

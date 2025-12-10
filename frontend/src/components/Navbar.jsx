@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Navbar.css";
@@ -24,7 +23,8 @@ function Navbar() {
     { path: "/dev-auth", label: "Espace Développeurs", icon: "👨‍💻" },
     { path: "/org-auth", label: "Espace Organisations", icon: "🏢" },
     { path: "/unified-auth", label: "Connexion", icon: "" } 
-    ];
+  ];
+
   return (
     <nav className={`navbar ${isScrolled ? "scrolled" : ""}`}>
       <div className="navbar-container">
@@ -66,7 +66,11 @@ function Navbar() {
 
         {/* Actions Droite */}
         <div className="navbar-actions">
-          <button className="nav-cta" onClick={() => navigate("/dev-auth")}>
+          {/* Bouton "Commencer" qui redirige vers la page de connexion */}
+          <button 
+            className="nav-cta" 
+            onClick={() => navigate("/unified-auth")}
+          >
             <span className="cta-pulse"></span>
             <span className="cta-content">
               <span className="cta-text">Commencer</span>
@@ -118,10 +122,11 @@ function Navbar() {
           </div>
 
           <div className="mobile-cta-section">
+            {/* Bouton "Commencer" mobile qui redirige vers la connexion */}
             <button 
               className="mobile-cta-btn"
               onClick={() => {
-                navigate("/dev-auth");
+                navigate("/unified-auth");
                 setIsMobileMenuOpen(false);
               }}
             >
@@ -134,4 +139,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;    
+export default Navbar;
