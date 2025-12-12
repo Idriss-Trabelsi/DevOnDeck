@@ -668,9 +668,8 @@ app.get("/api/joboffers/:id", async (req, res) => {
 
 
 // =========================
-// 📬 APPLICATION ROUTES - COMPLÈTES
+// 📬 APPLICATION ROUTES - COMPLÈTES ET CORRIGÉES
 // =========================
-
 
 // 🆕 POST : Candidature enrichie
 app.post("/api/applications/enriched", async (req, res) => {
@@ -783,6 +782,38 @@ app.get("/api/applications/organization/:id", async (req, res) => {
   }
 });
 
+// 👑 GET : TOUTES les candidatures (pour l'admin) - NOUVELLE ROUTE
+app.get("/api/applications/all", async (req, res) => {
+  try {
+    console.log("🔄 Route /api/applications/all appelée");
+    
+    // Test simple d'abord
+    const test = await Application.find().limit(1);
+    console.log("✅ Test Application.find() réussi");
+    
+    const applications = await Application.find()
+      .populate("developer", "name email skills")
+      .populate("jobOffer", "title organization")
+      .populate("organization", "name email")
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ ${applications.length} candidature(s) trouvée(s)`);
+
+    res.json({
+      success: true,
+      count: applications.length,
+      applications: applications
+    });
+  } catch (error) {
+    console.error("🔴 ERREUR dans /api/applications/all:", error.message);
+    console.error("Stack trace:", error.stack);
+    res.status(500).json({ 
+      success: false,
+      error: "Erreur serveur: " + error.message
+    });
+  }
+});
+
 // 👁️ GET : Une candidature complète
 app.get("/api/applications/:id", async (req, res) => {
   try {
@@ -854,7 +885,6 @@ app.get("/api/applications/check/:developerId/:jobOfferId", async (req, res) => 
     res.status(500).json({ error: error.message });
   }
 });
-
 // =========================
 // 🚀 Lancer le serveur
 // =========================

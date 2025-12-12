@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/OrgApplications.css";
-import EnhancedApplicationView from "./ApplicationView";
+import EnhancedApplicationView from "../components/ApplicationView";
 
 export default function OrgApplications() {
   const navigate = useNavigate();
@@ -30,6 +29,7 @@ export default function OrgApplications() {
     checkAuthAndFetch();
   }, []);
 
+  // ⚠️ AJOUTER cette fonction qui manquait
   const fetchApplications = async (orgId) => {
     try {
       setLoading(true);
@@ -56,10 +56,22 @@ export default function OrgApplications() {
     return statusConfig[status] || statusConfig.pending;
   };
 
+  // ⚠️ CORRECTION : application → app pour éviter la confusion
   const filteredApplications = applications.filter(app => {
     if (filter === "all") return true;
     return app.status === filter;
   });
+
+  // ⚠️ AJOUTER cette fonction pour gérer la mise à jour du statut
+  const handleStatusUpdate = (updatedApp) => {
+    // Mettre à jour la liste
+    setApplications(prev => prev.map(app => 
+      app._id === updatedApp._id ? updatedApp : app
+    ));
+    setSelectedApplication(null);
+    setMessage("✅ Statut mis à jour");
+    setTimeout(() => setMessage(""), 3000);
+  };
 
   if (loading) {
     return (
@@ -206,7 +218,6 @@ export default function OrgApplications() {
                   </div>
                 )}
 
-                {/* NOUVEAU : Infos enrichies */}
                 {(app.expectedSalary || app.availabilityDate) && (
                   <div className="app-enriched-info">
                     <h4>📊 Informations supplémentaires</h4>
@@ -246,15 +257,7 @@ export default function OrgApplications() {
         <EnhancedApplicationView
           application={selectedApplication}
           onClose={() => setSelectedApplication(null)}
-          onStatusUpdate={(updatedApp) => {
-            // Mettre à jour la liste
-            setApplications(prev => prev.map(app => 
-              app._id === updatedApp._id ? updatedApp : app
-            ));
-            setSelectedApplication(null);
-            setMessage("✅ Statut mis à jour");
-            setTimeout(() => setMessage(""), 3000);
-          }}
+          onStatusUpdate={handleStatusUpdate}
         />
       )}
     </div>

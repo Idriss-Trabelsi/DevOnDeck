@@ -25,38 +25,39 @@ export default function EnhancedApplyModal({
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-    
-    try {
-      const response = await fetch("http://localhost:5000/api/applications/enriched", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobOfferId: offer._id,
-          developerId: developer.id,
-          ...formData
-        })
-      });
+  // Vérifiez que l'URL est correcte
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setMessage("");
+  
+  try {
+    const response = await fetch("http://localhost:5000/api/applications/enriched", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jobOfferId: offer._id,
+        developerId: developer.id,
+        ...formData
+      })
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.success) {
-        setMessage("✅ Candidature envoyée avec succès !");
-        setTimeout(() => {
-          onSuccess();
-        }, 1500);
-      } else {
-        setMessage(`❌ ${data.error}`);
-      }
-    } catch (error) {
-      setMessage("❌ Erreur de connexion au serveur");
-    } finally {
-      setLoading(false);
+    if (data.success) {
+      setMessage("✅ Candidature envoyée avec succès !");
+      setTimeout(() => {
+        onSuccess();
+      }, 1500);
+    } else {
+      setMessage(`❌ ${data.error}`);
     }
-  };
+  } catch (error) {
+    setMessage("❌ Erreur de connexion au serveur");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="modal-overlay" onClick={onClose}>

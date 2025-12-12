@@ -81,6 +81,12 @@ function AdminDashboard() {
           >
            Voir toutes les offres ({jobOffers.length})
          </button>
+         <button 
+          className="action-btn" 
+          onClick={() => window.location.href = "/admin/applications"}
+          >
+            📋 Voir toutes les candidatures
+            </button>
         </div>
       </div>
     </div>

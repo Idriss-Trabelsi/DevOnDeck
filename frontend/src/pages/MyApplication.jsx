@@ -42,10 +42,10 @@ export default function MyApplications() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      pending: { text: "⏳ En attente", className: "pending", icon: "⏳" },
-      reviewed: { text: "👁️‍🗨️ Vu par l'entreprise", className: "reviewed", icon: "👁️‍🗨️" },
-      accepted: { text: "✅ Accepté", className: "accepted", icon: "✅" },
-      rejected: { text: "❌ Refusé", className: "rejected", icon: "❌" }
+      pending: { text: "⏳ En attente", className: "pending" },
+      reviewed: { text: "👁️‍🗨️ Vu par l'entreprise", className: "reviewed"  },
+      accepted: { text: "✅ Accepté", className: "accepted" },
+      rejected: { text: "❌ Refusé", className: "rejected" }
     };
     
     return badges[status] || badges.pending;

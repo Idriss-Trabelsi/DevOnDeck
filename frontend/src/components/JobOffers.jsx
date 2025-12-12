@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/JobOffers.css";
@@ -12,10 +11,7 @@ export default function JobOffers() {
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
   const [selectedOffer, setSelectedOffer] = useState(null);
-  const [coverLetter, setCoverLetter] = useState("");
-  const [showApplyForm, setShowApplyForm] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
-  const [applying, setApplying] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [showEnhancedApply, setShowEnhancedApply] = useState(false);
   
@@ -34,7 +30,6 @@ export default function JobOffers() {
   }, [searchTerm, locationFilter, typeFilter, statusFilter, jobOffers]);
 
   const checkAuthAndFetch = async () => {
-    // Vérifier qui est connecté
     let role = null;
     let data = null;
 
@@ -79,7 +74,6 @@ export default function JobOffers() {
     }
   };
 
-  // Fonction pour vérifier si déjà candidaté
   const checkIfApplied = async (offerId) => {
     if (userRole !== "developer" || !userData?.id) return false;
     
@@ -102,12 +96,10 @@ export default function JobOffers() {
   const applyFilters = () => {
     let filtered = [...jobOffers];
 
-    // Filtre par statut
     if (statusFilter !== "all") {
       filtered = filtered.filter(offer => offer.status === statusFilter);
     }
 
-    // Filtre par recherche
     if (searchTerm) {
       filtered = filtered.filter(offer =>
         offer.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -118,12 +110,10 @@ export default function JobOffers() {
       );
     }
 
-    // Filtre par localisation
     if (locationFilter !== "all") {
       filtered = filtered.filter(offer => offer.location === locationFilter);
     }
 
-    // Filtre par type d'emploi
     if (typeFilter !== "all") {
       filtered = filtered.filter(offer => offer.employmentType === typeFilter);
     }
@@ -133,10 +123,7 @@ export default function JobOffers() {
 
   const handleViewDetails = async (offer) => {
     setSelectedOffer(offer);
-    setShowApplyForm(false);
-    setCoverLetter("");
     
-    // Vérifier si déjà candidaté
     if (userRole === "developer" && userData?.id) {
       const applied = await checkIfApplied(offer._id);
       setHasApplied(applied);
@@ -145,68 +132,7 @@ export default function JobOffers() {
 
   const handleCloseDetails = () => {
     setSelectedOffer(null);
-    setShowApplyForm(false);
-    setCoverLetter("");
     setHasApplied(false);
-  };
-
-  // Fonction de candidature simple
-  const handleSubmitApplication = async () => {
-    if (!userData?.id || !selectedOffer) {
-      showMessage("Erreur: Impossible de postuler", "error");
-      return;
-    }
-
-    // Vérifier que le développeur a des compétences
-    if (!userData.skills || userData.skills.trim() === "") {
-      showMessage("❌ Vous devez renseigner vos compétences dans votre profil avant de postuler", "error");
-      setTimeout(() => navigate("/developer/dashboard"), 2000);
-      return;
-    }
-
-    setApplying(true);
-
-    try {
-      console.log("🔄 Envoi de la candidature simple...");
-
-      const response = await fetch("http://localhost:5000/api/applications", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          jobOfferId: selectedOffer._id,
-          developerId: userData.id,
-          coverLetter: coverLetter
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `Erreur HTTP ${response.status}`);
-      }
-
-      if (data.success) {
-        showMessage("✅ Candidature envoyée avec succès !", "success");
-        setShowApplyForm(false);
-        setCoverLetter("");
-        setHasApplied(true);
-        
-        // Rafraîchir les données
-        setTimeout(() => {
-          fetchAllJobOffers();
-        }, 1500);
-      } else {
-        showMessage(`❌ ${data.error || "Erreur lors de l'envoi"}`, "error");
-      }
-    } catch (error) {
-      console.error("💥 Erreur candidature:", error);
-      showMessage(`❌ Erreur: ${error.message}`, "error");
-    } finally {
-      setApplying(false);
-    }
   };
 
   const showMessage = (text, type = "success") => {
@@ -249,7 +175,6 @@ export default function JobOffers() {
 
   return (
     <div className="job-offers-container">
-      {/* Header */}
       <header className="offers-header">
         <div className="header-content">
           <div className="header-left">
@@ -280,7 +205,6 @@ export default function JobOffers() {
         </div>
       </header>
 
-      {/* Message */}
       {message.text && (
         <div className={`message-banner ${message.type}`}>
           {message.text}
@@ -288,12 +212,10 @@ export default function JobOffers() {
       )}
 
       <div className="offers-layout">
-        {/* Sidebar Filtres */}
         <aside className="filters-sidebar">
           <div className="filters-card">
             <h3>🔍 Filtres</h3>
 
-            {/* Recherche */}
             <div className="filter-group">
               <label>Recherche</label>
               <input
@@ -305,7 +227,6 @@ export default function JobOffers() {
               />
             </div>
 
-            {/* Statut */}
             <div className="filter-group">
               <label>Statut</label>
               <select
@@ -320,7 +241,6 @@ export default function JobOffers() {
               </select>
             </div>
 
-            {/* Localisation */}
             <div className="filter-group">
               <label>Localisation</label>
               <select
@@ -335,7 +255,6 @@ export default function JobOffers() {
               </select>
             </div>
 
-            {/* Type d'emploi */}
             <div className="filter-group">
               <label>Type d'emploi</label>
               <select
@@ -365,7 +284,6 @@ export default function JobOffers() {
           </div>
         </aside>
 
-        {/* Liste des offres */}
         <main className="offers-main">
           {filteredOffers.length === 0 ? (
             <div className="empty-state">
@@ -439,7 +357,6 @@ export default function JobOffers() {
         </main>
       </div>
 
-      {/* Modal détails de l'offre */}
       {selectedOffer && (
         <div className="modal-overlay" onClick={handleCloseDetails}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -527,7 +444,7 @@ export default function JobOffers() {
                 })}</p>
               </div>
 
-              {/* NOUVELLE SECTION DE POSTULATION AVEC DEUX OPTIONS */}
+              {/* SECTION DE POSTULATION - UNIQUEMENT ENRICHIE */}
               {userRole === "developer" && selectedOffer.status === "active" && (
                 <div className="application-section">
                   <h3>📝 Postuler à cette offre</h3>
@@ -547,117 +464,18 @@ export default function JobOffers() {
                       </button>
                     </div>
                   ) : (
-                    <div className="apply-options-enhanced">
-                      {/* Option 1: Formulaire enrichi */}
-                      <div className="apply-card-enhanced">
+                    <div className="apply-enriched-only">
+                      <div className="enriched-card">
                         <div className="card-icon">🚀</div>
-                        <h4>Formulaire enrichi</h4>
-                        <p>Présentez-vous avec un profil complet incluant salaire attendu, portfolio, et plus</p>
+                        <h4>Formulaire de candidature complet</h4>
+                        <p>Présentez-vous avec un profil détaillé incluant salaire attendu, portfolio, et lettre de motivation personnalisée</p>
                         <button 
                           className="btn-apply-enhanced"
                           onClick={() => setShowEnhancedApply(true)}
                         >
-                          Utiliser le formulaire enrichi
+                          Postuler avec formulaire complet
                         </button>
                       </div>
-                      
-                      {/* Option 2: Formulaire simple */}
-                      <div className="apply-card-enhanced simple">
-                        <div className="card-icon">✏️</div>
-                        <h4>Postulation rapide</h4>
-                        <p>Envoyez simplement votre CV et une lettre de motivation</p>
-                        <button 
-                          className="btn-apply-simple"
-                          onClick={() => setShowApplyForm(true)}
-                        >
-                          Postuler rapidement
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Formulaire simple (ancien) */}
-                  {showApplyForm && !hasApplied && (
-                    <div className="simple-apply-form">
-                      <div className="form-header">
-                        <h4>Postulation rapide</h4>
-                        <button 
-                          className="close-form-btn"
-                          onClick={() => setShowApplyForm(false)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                      
-                      <div className="developer-skills-preview">
-                        <h4>Vos compétences actuelles :</h4>
-                        <div className="skills-display">
-                          {userData.skills ? (
-                            <div className="skills-tags">
-                              {userData.skills.split(',').map((skill, index) => (
-                                <span key={index} className="skill-tag">
-                                  {skill.trim()}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="no-skills-warning">
-                              ⚠️ Vous n'avez pas encore renseigné vos compétences. 
-                              <button 
-                                className="link-btn"
-                                onClick={() => navigate("/developer/dashboard")}
-                              >
-                                Compléter mon profil
-                              </button>
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="cover-letter-section">
-                        <h4>Lettre de motivation <span className="optional">(optionnelle)</span></h4>
-                        <textarea
-                          className="cover-letter-input"
-                          placeholder={`Bonjour,\n\nJe suis intéressé par le poste de "${selectedOffer.title}" car...\n\nMes compétences correspondent aux besoins car...\n\nCordialement,\n${userData.name}`}
-                          value={coverLetter}
-                          onChange={(e) => setCoverLetter(e.target.value)}
-                          rows="6"
-                          disabled={!userData.skills || userData.skills.trim() === ""}
-                        />
-                      </div>
-
-                      <div className="apply-actions">
-                        <button
-                          className="btn-cancel-apply"
-                          onClick={() => {
-                            setShowApplyForm(false);
-                            setCoverLetter("");
-                          }}
-                          disabled={applying}
-                        >
-                          Annuler
-                        </button>
-                        <button
-                          className="btn-submit-apply"
-                          onClick={handleSubmitApplication}
-                          disabled={applying || !userData.skills || userData.skills.trim() === ""}
-                        >
-                          {applying ? (
-                            <>
-                              <span className="loading-spinner"></span>
-                              Envoi en cours...
-                            </>
-                          ) : (
-                            "📨 Envoyer ma candidature"
-                          )}
-                        </button>
-                      </div>
-                      
-                      {(!userData.skills || userData.skills.trim() === "") && (
-                        <p className="warning-message">
-                          ⚠️ Vous devez renseigner vos compétences avant de pouvoir postuler.
-                        </p>
-                      )}
                     </div>
                   )}
                 </div>
@@ -667,7 +485,6 @@ export default function JobOffers() {
         </div>
       )}
 
-      {/* Modal formulaire enrichi */}
       {showEnhancedApply && selectedOffer && userData && (
         <EnhancedApplyModal
           offer={selectedOffer}

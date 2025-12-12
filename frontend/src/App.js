@@ -6,7 +6,6 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./components/Home";
 import JobOffers from "./components/JobOffers";
-import MyApplications from "./components/MyApplications";
 // Pages
 import DevAuth from "./pages/DevAuth";
 import OrgAuth from "./pages/OrgAuth";
@@ -17,7 +16,9 @@ import AdminDevelopersList from "./pages/AdminDevelopersList";
 import DevDashboard from "./pages/DevDashboard";
 import DevProfile from "./pages/DevProfil";
 import UnifiedAuth from "./pages/UnifiedAuth";
-import OrgApplications from "./components/OrgApplications";
+import OrgApplications from "./pages/OrgApplications";
+import AdminApplications from "./pages/AdminApplications"; 
+import MyApplications from "./pages/MyApplication";
 
 
 // Layout pour pages avec Navbar + Footer
@@ -73,6 +74,7 @@ export default function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/profile" element={<AdminProfile />} />
         <Route path="/admin/developers" element={<AdminDevelopersList />} />
+        <Route path="/admin/applications" element={<AdminApplications />} /> {/* ⚠️ NOUVELLE ROUTE */}
 
         {/* Pages sans Navbar/Footer - Developer */}
         <Route path="/developer/dashboard" element={<DevDashboard />} />
@@ -83,9 +85,11 @@ export default function App() {
         {/* Route commune - Offres d'emploi */}
         <Route path="/job-offers" element={<JobOffers />} />
         <Route path="/developer/applications" element={<MyApplications />} />
+        {/* ⚠️ AJOUTER cette route */}
+        <Route path="/org/applications" element={<OrgApplications />} />
+        
         {/* Catch-all route pour les pages non trouvées */}
         <Route path="*" element={<Home />} />
-        <Route path="/org/applications" element={<OrgApplications />} />
       </Routes>
     </Router>
   );

@@ -42,21 +42,21 @@ export default function EnhancedApplicationView({
     }
   };
 
-  return (
-    <div className="app-view-overlay" onClick={onClose}>
-      <div className="app-view-container" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="app-view-header">
-          <div className="candidate-info">
-            <div className="candidate-avatar">
-              {application.developer?.name?.charAt(0).toUpperCase() || "D"}
-            </div>
-            <div>
-              <h2>{application.developer?.name}</h2>
-              <p className="candidate-email">{application.developer?.email}</p>
-            </div>
+  // Vérifiez que les données sont accessibles
+return (
+  <div className="app-view-overlay" onClick={onClose}>
+    <div className="app-view-container" onClick={(e) => e.stopPropagation()}>
+      {/* Header */}
+      <div className="app-view-header">
+        <div className="candidate-info">
+          <div className="candidate-avatar">
+            {application.developer?.name?.charAt(0).toUpperCase() || "D"}
           </div>
-          
+          <div>
+            <h2>{application.developer?.name}</h2>
+            <p className="candidate-email">{application.developer?.email}</p>
+          </div>
+        </div> 
           <div className="application-meta">
             <div className="status-badge">
               {getStatusText(application.status)}
@@ -225,21 +225,21 @@ export default function EnhancedApplicationView({
               onClick={() => handleStatusChange("reviewed")}
               disabled={loading || application.status === "reviewed"}
             >
-              👁️ Marquer comme vu
+              Marquer comme vu
             </button>
             <button 
               className="btn-success"
               onClick={() => handleStatusChange("accepted")}
               disabled={loading}
             >
-              ✅ Accepter
+              Accepter
             </button>
             <button 
               className="btn-danger"
               onClick={() => handleStatusChange("rejected")}
               disabled={loading}
             >
-              ❌ Refuser
+               Refuser
             </button>
           </div>
         </div>
