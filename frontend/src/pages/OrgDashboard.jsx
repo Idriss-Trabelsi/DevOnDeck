@@ -291,6 +291,13 @@ function OrgDashboard() {
               <span className="nav-label">Offres d'emploi</span>
               <span className="nav-badge">{totalOffers}</span>
             </button>
+            <button 
+    className="nav-item-pro"
+    onClick={() => navigate("/org/job-manager")}
+  >
+    <span className="nav-icon">📋</span>
+    <span className="nav-label">Gérer les offres</span>
+  </button>
 
             {/* AJOUT DU BOUTON CANDIDATURES */}
             <button 
@@ -441,6 +448,13 @@ function OrgDashboard() {
                     </div>
                     {/* BOUTONS MODIFIER ET SUPPRIMER */}
                     <div className="offer-actions">
+                       <button 
+    className="btn-matching"
+    onClick={() => navigate(`/job-offers/${offer._id}/matching`)}
+  >
+    <span>🎯</span>
+    Matching
+  </button>
                       <button 
                         className="btn-edit"
                         onClick={() => handleEditOffer(offer)}

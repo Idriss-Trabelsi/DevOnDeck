@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./components/Home";
 import JobOffers from "./components/JobOffers";
+
 // Pages
 import DevAuth from "./pages/DevAuth";
 import OrgAuth from "./pages/OrgAuth";
@@ -19,6 +20,10 @@ import UnifiedAuth from "./pages/UnifiedAuth";
 import OrgApplications from "./pages/OrgApplications";
 import AdminApplications from "./pages/AdminApplications"; 
 import MyApplications from "./pages/MyApplication";
+import MatchingDashboard from "./pages/MatchingDashboard";
+import JobOfferManager from "./pages/JobOfferManager";
+
+
 
 
 // Layout pour pages avec Navbar + Footer
@@ -87,6 +92,8 @@ export default function App() {
         <Route path="/developer/applications" element={<MyApplications />} />
         {/* ⚠️ AJOUTER cette route */}
         <Route path="/org/applications" element={<OrgApplications />} />
+        <Route path="/job-offers/:jobId/matching" element={<MatchingDashboard />} />
+        <Route path="/org/job-manager" element={<JobOfferManager />} />
         
         {/* Catch-all route pour les pages non trouvées */}
         <Route path="*" element={<Home />} />

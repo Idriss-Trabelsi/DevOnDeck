@@ -36,7 +36,14 @@ const DeveloperSchema = new mongoose.Schema(
       type: String, 
       required: true, 
       trim: true 
-    }
+    },
+     matchingScore: {
+    type: Number,
+    default: 0
+  },
+  matchedSkills: [{
+    type: String
+  }]
   },
   { 
     timestamps: true,

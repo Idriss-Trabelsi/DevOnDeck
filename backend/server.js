@@ -885,6 +885,175 @@ app.get("/api/applications/check/:developerId/:jobOfferId", async (req, res) => 
     res.status(500).json({ error: error.message });
   }
 });
+
+// =========================
+// 🎯 US : MATCHING POSTE/DEVELOPPEUR
+// =========================
+
+// Route pour calculer le matching pour un poste spécifique
+app.get("/api/joboffers/:jobId/matching", async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    
+    // Récupérer le poste
+    const jobOffer = await JobOffer.findById(jobId);
+    if (!jobOffer) {
+      return res.status(404).json({ success: false, error: "Offre non trouvée" });
+    }
+
+    // Récupérer tous les développeurs
+    const developers = await Developer.find().select('-password');
+    
+    // Calculer le matching pour chaque développeur
+    const developersWithMatching = developers.map(developer => {
+      const matching = calculateMatchingScore(developer, jobOffer);
+      return {
+        ...developer.toObject(),
+        matchingScore: matching.score,
+        matchedSkills: matching.matchedSkills,
+        missingSkills: matching.missingSkills
+      };
+    });
+
+    // Trier par score de matching (décroissant)
+    developersWithMatching.sort((a, b) => b.matchingScore - a.matchingScore);
+
+    res.json({
+      success: true,
+      jobOffer: {
+        id: jobOffer._id,
+        title: jobOffer.title,
+        requiredSkills: jobOffer.requiredSkills || []
+      },
+      developers: developersWithMatching,
+      total: developersWithMatching.length
+    });
+
+  } catch (error) {
+    console.error("Erreur calcul matching:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Route pour filtrer les développeurs par compétences
+app.get("/api/developers/filter", async (req, res) => {
+  try {
+    const { skills, location, minScore } = req.query;
+    
+    let query = {};
+    
+    // Filtre par compétences
+    if (skills) {
+      const skillsArray = skills.split(',').map(skill => skill.trim().toLowerCase());
+      query.skills = { $regex: new RegExp(skillsArray.join('|'), 'i') };
+    }
+    
+    // Filtre par localisation
+    if (location) {
+      query.address = { $regex: new RegExp(location, 'i') };
+    }
+    
+    // Récupérer les développeurs
+    let developers = await Developer.find(query).select('-password');
+    
+    // Filtrer par score de matching minimum
+    if (minScore) {
+      developers = developers.filter(dev => dev.matchingScore >= parseInt(minScore));
+    }
+    
+    res.json({
+      success: true,
+      developers: developers,
+      count: developers.length
+    });
+
+  } catch (error) {
+    console.error("Erreur filtre développeurs:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Fonction de calcul du matching
+function calculateMatchingScore(developer, jobOffer) {
+  const developerSkills = developer.skills 
+    ? developer.skills.toLowerCase().split(',').map(skill => skill.trim())
+    : [];
+  
+  const jobSkills = jobOffer.requiredSkills || [];
+  const jobSkillsLower = jobSkills.map(skill => skill.toLowerCase().trim());
+  
+  // Compétences correspondantes
+  const matchedSkills = developerSkills.filter(skill => 
+    jobSkillsLower.some(jobSkill => 
+      skill.includes(jobSkill) || jobSkill.includes(skill)
+    )
+  );
+  
+  // Compétences manquantes
+  const missingSkills = jobSkillsLower.filter(jobSkill => 
+    !developerSkills.some(skill => 
+      skill.includes(jobSkill) || jobSkill.includes(skill)
+    )
+  );
+  
+  // Calcul du score (pourcentage)
+  const score = jobSkills.length > 0 
+    ? Math.round((matchedSkills.length / jobSkills.length) * 100)
+    : 0;
+  
+  return {
+    score,
+    matchedSkills,
+    missingSkills,
+    totalJobSkills: jobSkills.length,
+    matchedCount: matchedSkills.length
+  };
+}
+
+// Route pour récupérer les développeurs suggérés pour un poste
+app.get("/api/joboffers/:jobId/suggestions", async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { limit = 10 } = req.query;
+    
+    const jobOffer = await JobOffer.findById(jobId);
+    if (!jobOffer) {
+      return res.status(404).json({ success: false, error: "Offre non trouvée" });
+    }
+    
+    const developers = await Developer.find().select('-password');
+    
+    // Calculer le matching et trier
+    const developersWithMatching = developers.map(developer => {
+      const matching = calculateMatchingScore(developer, jobOffer);
+      return {
+        ...developer.toObject(),
+        matchingScore: matching.score,
+        matchedSkills: matching.matchedSkills,
+        missingSkills: matching.missingSkills
+      };
+    });
+    
+    // Trier et limiter
+    const suggestions = developersWithMatching
+      .sort((a, b) => b.matchingScore - a.matchingScore)
+      .slice(0, parseInt(limit));
+    
+    res.json({
+      success: true,
+      suggestions: suggestions,
+      jobOffer: {
+        id: jobOffer._id,
+        title: jobOffer.title,
+        requiredSkills: jobOffer.requiredSkills
+      }
+    });
+    
+  } catch (error) {
+    console.error("Erreur suggestions:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 // =========================
 // 🚀 Lancer le serveur
 // =========================
