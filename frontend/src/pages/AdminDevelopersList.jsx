@@ -15,9 +15,12 @@ export default function AdminDevelopersList() {
   const fetchDevelopers = async () => {
     try {
       const res = await axios.get(`${apiBase}/admin/developers`);
-      if (res.data.success) setDevelopers(res.data.data);
+      if (res.data.success) {
+        console.log("📋 Développeurs récupérés:", res.data.data);
+        setDevelopers(res.data.data);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Erreur fetchDevelopers:", err);
       showMessage("Erreur lors du chargement des développeurs", "error");
     } finally {
       setLoading(false);
@@ -49,7 +52,7 @@ export default function AdminDevelopersList() {
         fetchDevelopers();
       }
     } catch (err) {
-      console.error(err);
+      console.error("Erreur mise à jour:", err);
       showMessage("Erreur lors de la mise à jour", "error");
     }
   };
@@ -61,7 +64,7 @@ export default function AdminDevelopersList() {
       if (res.data.success) showMessage(res.data.message, "success");
       fetchDevelopers();
     } catch (err) {
-      console.error(err);
+      console.error("Erreur suppression:", err);
       showMessage("Erreur lors de la suppression", "error");
     } finally {
       setConfirmDelete(null);
@@ -80,44 +83,56 @@ export default function AdminDevelopersList() {
         </div>
       )}
 
-      <table>
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Email</th>
-            <th>Compétences</th>
-            <th>Téléphone</th>
-            <th>Adresse</th> 
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {developers.map((dev) => (
-            <tr key={dev._id}>
-              <td>{dev.name}</td>
-              <td>{dev.email}</td>
-              <td>{dev.skills || "—"}</td>
-              <td>{dev.phone || "—"}</td>
-              <td>{dev.address || "—"}</td>
-
-              <td className="actions-cell">
-                <button 
-                  className="btn btn-primary btn-sm" 
-                  onClick={() => setEditingDev({ ...dev })}
-                >
-                  Modifier
-                </button>
-                <button 
-                  className="btn btn-danger btn-sm" 
-                  onClick={() => setConfirmDelete(dev._id)}
-                >
-                   Supprimer
-                </button>
-              </td>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Compétences</th>
+              <th>Bio</th>
+              <th>Téléphone</th>
+              <th>Adresse</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {developers.map((dev) => (
+              <tr key={dev._id}>
+                <td>{dev.name}</td>
+                <td>{dev.email}</td>
+                <td>{dev.skills || "—"}</td>
+                <td className="bio-cell">
+                  {dev.bio ? (
+                    <div className="bio-preview">
+                      {dev.bio.length > 50 ? `${dev.bio.substring(0, 50)}...` : dev.bio}
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td>{dev.phone || "—"}</td>
+                <td>{dev.address || "—"}</td>
+
+                <td className="actions-cell">
+                  <button 
+                    className="btn btn-primary btn-sm" 
+                    onClick={() => setEditingDev({ ...dev })}
+                  >
+                    Modifier
+                  </button>
+                  <button 
+                    className="btn btn-danger btn-sm" 
+                    onClick={() => setConfirmDelete(dev._id)}
+                  >
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Formulaire de modification */}
       {editingDev && (
@@ -152,6 +167,18 @@ export default function AdminDevelopersList() {
                   name="skills"
                   value={editingDev.skills || ""}
                   onChange={handleEditChange}
+                  placeholder="React, Node.js, Python..."
+                />
+              </div>
+
+              <div className="form-group full-width">
+                <label>Bio :</label>
+                <textarea
+                  name="bio"
+                  value={editingDev.bio || ""}
+                  onChange={handleEditChange}
+                  placeholder="Bio du développeur..."
+                  rows="3"
                 />
               </div>
 
@@ -172,20 +199,18 @@ export default function AdminDevelopersList() {
                   onChange={handleEditChange}
                 />
               </div>
-
-              
             </div>
 
             <div className="form-buttons">
               <button type="submit" className="btn btn-success">
-                 Enregistrer
+                Enregistrer
               </button>
               <button 
                 type="button" 
                 className="btn btn-secondary"
                 onClick={() => setEditingDev(null)}
               >
-                 Annuler
+                Annuler
               </button>
             </div>
           </form>
@@ -194,21 +219,23 @@ export default function AdminDevelopersList() {
 
       {/* Confirmation suppression */}
       {confirmDelete && (
-        <div className="confirm-delete">
-          <p>Voulez-vous vraiment supprimer ce développeur ?</p>
-          <div className="confirm-delete-buttons">
-            <button 
-              className="btn btn-danger" 
-              onClick={() => handleDeleteConfirmed(confirmDelete)}
-            >
-               Confirmer
-            </button>
-            <button 
-              className="btn btn-secondary" 
-              onClick={() => setConfirmDelete(null)}
-            >
-               Annuler
-            </button>
+        <div className="confirm-delete-backdrop">
+          <div className="confirm-delete">
+            <p>Voulez-vous vraiment supprimer ce développeur ?</p>
+            <div className="confirm-delete-buttons">
+              <button 
+                className="btn btn-danger" 
+                onClick={() => handleDeleteConfirmed(confirmDelete)}
+              >
+                Confirmer
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setConfirmDelete(null)}
+              >
+                Annuler
+              </button>
+            </div>
           </div>
         </div>
       )}

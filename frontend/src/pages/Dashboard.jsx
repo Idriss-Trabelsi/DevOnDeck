@@ -4,20 +4,32 @@ import "../styles/Dashboard.css";
 
 function AdminDashboard() {
   const [developers, setDevelopers] = useState([]);
+  const [jobOffers, setJobOffers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // On récupère les devs depuis le backend
-    axios.get("http://localhost:5000/api/admin/developers")
-      .then(res => {
-        setDevelopers(res.data.data);
+    // Récupérer les développeurs et les offres
+    const fetchData = async () => {
+      try {
+        // Récupérer les développeurs
+        const devsResponse = await axios.get("http://localhost:5000/api/admin/developers");
+        setDevelopers(devsResponse.data.data);
+
+        // Récupérer toutes les offres d'emploi
+        const offersResponse = await axios.get("http://localhost:5000/api/joboffers/all");
+        setJobOffers(offersResponse.data.jobOffers || []);
+      } catch (err) {
+        console.error("Erreur lors du chargement des données:", err);
+      } finally {
         setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
+
+  // Calculer le nombre d'offres actives
+  const activeOffersCount = jobOffers.filter(offer => offer.status === 'active').length;
 
   if (loading) return <div>Chargement...</div>;
 
@@ -43,7 +55,7 @@ function AdminDashboard() {
 
         <div className="stat-card">
           <h3>💼 Offres</h3>
-          <p className="stat-number">0</p>
+          <p className="stat-number">{activeOffersCount}</p>
           <p className="stat-label">Actives</p>
         </div>
 
@@ -63,6 +75,18 @@ function AdminDashboard() {
           <button className="action-btn" onClick={() => window.location.href='/admin/developers'}>
             Voir les développeurs
           </button>
+          <button 
+           className="action-btn" 
+           onClick={() => window.location.href='/job-offers'}
+          >
+           Voir toutes les offres ({jobOffers.length})
+         </button>
+         <button 
+          className="action-btn" 
+          onClick={() => window.location.href = "/admin/applications"}
+          >
+            📋 Voir toutes les candidatures
+            </button>
         </div>
       </div>
     </div>

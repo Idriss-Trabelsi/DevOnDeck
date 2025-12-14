@@ -110,7 +110,7 @@ function Home() {
           <div className="hero-actions">
             <button 
               className="cta-btn cta-primary"
-              onClick={() => navigate("/login-admin")}
+              onClick={() => navigate("/org-auth")}
             >
               <span className="btn-shine"></span>
               <span className="btn-content">
@@ -127,6 +127,18 @@ function Home() {
               <span className="btn-content">
                 <span className="btn-icon">👨‍💻</span>
                 <span className="btn-text">Espace Talent</span>
+                <span className="btn-arrow">↗</span>
+              </span>
+            </button>
+
+            {/* Nouveau bouton pour la connexion unifiée */}
+            <button 
+              className="cta-btn cta-tertiary"
+              onClick={() => navigate("/unified-auth")}
+            >
+              <span className="btn-content">
+                <span className="btn-icon">🔐</span>
+                <span className="btn-text">Déjà inscrit ?</span>
                 <span className="btn-arrow">↗</span>
               </span>
             </button>
@@ -220,19 +232,19 @@ function Home() {
             
             <div className="cta-actions">
               <button 
-                className="final-cta-btn"
-                onClick={() => navigate("/dev-auth")}
+                className="final-btn primary"
+                onClick={() => navigate("/unified-auth")}
               >
-                <span className="final-btn-shine"></span>
-                <span className="final-btn-content">
-                  <span>Démarrer l'Expérience</span>
-                  <span className="final-arrow">⟶</span>
-                </span>
+                <span className="shine"></span>
+                <span>Commencer Maintenant</span>
               </button>
               
-              <button className="demo-cta-btn">
-                <span>Voir la Démo Exclusive</span>
-                <span className="demo-icon">🎬</span>
+              <button 
+                className="final-btn secondary"
+                onClick={() => navigate("/dev-auth")}
+              >
+                <span>Découvrir les Talents</span>
+                <span className="demo-icon">🚀</span>
               </button>
             </div>
           </div>

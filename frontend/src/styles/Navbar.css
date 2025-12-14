@@ -689,4 +689,60 @@ devAuth.css
     padding: 25px 20px;
   }
 }
+/* User Status in Mobile */
+.mobile-user-status {
+  padding: 15px 20px;
+  margin: 20px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-icon {
+  font-size: 20px;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Logout button in mobile */
+.mobile-logout-btn {
+  width: calc(100% - 40px);
+  margin: 10px 20px;
+  padding: 15px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.mobile-logout-btn:hover {
+  background: #ff4757;
+}
+
+/* Dynamic CTA button styles */
+.nav-cta.dashboard {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.nav-cta.dashboard .cta-pulse {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Mobile CTA dynamic style */
+.mobile-cta-btn.dashboard {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
 

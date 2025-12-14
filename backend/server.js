@@ -10,6 +10,8 @@ const Admin = require("./models/Admin");
 const Developer = require("./models/Developer");
 const Organization = require("./models/Organization");
 const JobOffer = require("./models/JobOffer");
+const Application = require("./models/Application");
+
 
 // =========================
 // Initialisation
@@ -45,37 +47,141 @@ const createDefaultAdmin = async () => {
 createDefaultAdmin();
 
 // =========================
-// US1 : Login Admin
+// US : Login Unifié (Admin, Dev, Organization) - CORRIGÉ
 // =========================
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/unified-login", async (req, res) => {
   try {
+    console.log("🔐 Tentative de connexion unifiée reçue:", {
+      email: req.body.email,
+      passwordLength: req.body.password ? req.body.password.length : 0
+    });
+    
     const { email, password } = req.body;
-    const admin = await Admin.findOne({ email });
 
-    if (!admin) return res.status(401).json({ error: "Admin non trouvé" });
+    // Validation des champs requis
+    if (!email || !password) {
+      console.log("❌ Champs manquants:", { 
+        email: !!email, 
+        password: !!password
+      });
+      return res.status(400).json({ 
+        success: false,
+        error: "Email et mot de passe requis" 
+      });
+    }
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) return res.status(401).json({ error: "Mot de passe incorrect" });
+    let user = null;
+    let role = "";
+    let Model = null;
 
+    // RECHERCHE AUTOMATIQUE dans les 3 collections
+    console.log("🔍 Recherche automatique de l'utilisateur...");
+    
+    // 1. Chercher dans Admin
+    user = await Admin.findOne({ email: email.toLowerCase().trim() });
+    if (user) {
+      role = "admin";
+      Model = Admin;
+      console.log("✅ Utilisateur trouvé dans: Admin");
+    }
+    
+    // 2. Si pas admin, chercher dans Developer
+    if (!user) {
+      user = await Developer.findOne({ email: email.toLowerCase().trim() });
+      if (user) {
+        role = "developer";
+        Model = Developer;
+        console.log("✅ Utilisateur trouvé dans: Developer");
+      }
+    }
+    
+    // 3. Si pas developer, chercher dans Organization
+    if (!user) {
+      user = await Organization.findOne({ email: email.toLowerCase().trim() });
+      if (user) {
+        role = "organization";
+        Model = Organization;
+        console.log("✅ Utilisateur trouvé dans: Organization");
+      }
+    }
+
+    // Si aucun utilisateur trouvé
+    if (!user) {
+      console.log(`❌ Aucun utilisateur trouvé avec email: ${email}`);
+      return res.status(401).json({ 
+        success: false,
+        error: "Email ou mot de passe incorrect" 
+      });
+    }
+
+    console.log(`✅ ${role} trouvé: ${user.name || user.email}`);
+
+    // Vérification du mot de passe
+    console.log("🔑 Vérification du mot de passe...");
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      console.log("❌ Mot de passe incorrect");
+      return res.status(401).json({ 
+        success: false,
+        error: "Email ou mot de passe incorrect" 
+      });
+    }
+
+    console.log("✅ Mot de passe correct");
+
+    // Génération du token JWT
     const token = jwt.sign(
-      { id: admin._id, email: admin.email, role: "admin" },
+      { 
+        id: user._id, 
+        email: user.email, 
+        role: role 
+      },
       "votre_secret_key",
       { expiresIn: "24h" }
     );
 
-    res.json({
+    // Construction de la réponse
+    const response = {
       success: true,
       token,
-      admin: { id: admin._id, name: admin.name, email: admin.email },
-    });
+      role,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    };
+
+    // Ajouter des champs spécifiques selon le rôle
+    if (role === "developer") {
+      response.user.skills = user.skills || "";
+      response.user.phone = user.phone || "";
+      response.user.address = user.address || "";
+      response.user.bio = user.bio || "";
+    } else if (role === "organization") {
+      response.user.industry = user.industry || "";
+      response.user.size = user.size || "";
+      response.user.website = user.website || "";
+    }
+
+    console.log(`🎉 Connexion réussie pour ${role}: ${user.email}`);
+    console.log("📤 Envoi réponse:", response);
+    
+    res.json(response);
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("💥 ERREUR SERVEUR dans unified-login:", error);
+    res.status(500).json({ 
+      success: false,
+      error: "Erreur serveur lors de la connexion",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
 // =========================
-//  US2 : signup dev
+//  US2 : signup dev 
 // =========================
 app.post("/api/dev/signup", async (req, res) => {
   try {
@@ -158,43 +264,88 @@ app.post("/api/dev/signup", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 // =========================
-//  US3 : Login Développeur
+//  US3 : Mise à jour profil développeur
 // =========================
-app.post("/api/dev/login", async (req, res) => {
+app.put("/api/dev/profile/:id", async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const dev = await Developer.findOne({ email });
+    const { name, email, skills, bio, phone, address } = req.body;
+    
+    console.log("📥 Données reçues pour mise à jour:", req.body);
 
-    if (!dev) return res.status(401).json({ message: "Développeur non trouvé" });
+    // Validation des champs requis
+    if (!name || !email || !phone || !address) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Tous les champs requis doivent être remplis" 
+      });
+    }
 
-    const isMatch = await bcrypt.compare(password, dev.password);
-    if (!isMatch)
-      return res.status(401).json({ message: "Mot de passe incorrect" });
+    // Vérifier si l'email existe déjà pour un autre développeur
+    const existingDev = await Developer.findOne({ 
+      email: email.toLowerCase().trim(), 
+      _id: { $ne: req.params.id } 
+    });
+    
+    if (existingDev) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Email déjà utilisé par un autre développeur" 
+      });
+    }
 
-    const token = jwt.sign(
-      { id: dev._id, email: dev.email, role: "developer" },
-      "votre_secret_key",
-      { expiresIn: "24h" }
+    // Conversion skills en string sécurisée
+    let skillsStr = "";
+    if (Array.isArray(skills)) {
+      skillsStr = skills.filter(s => typeof s === "string").join(", ");
+    } else if (typeof skills === "string") {
+      skillsStr = skills;
+    } else {
+      skillsStr = "";
+    }
+
+    const updatedDev = await Developer.findByIdAndUpdate(
+      req.params.id,
+      { 
+        name, 
+        email: email.toLowerCase().trim(), 
+        skills: skillsStr,
+        bio: bio || "",
+        phone, 
+        address 
+      },
+      { new: true, runValidators: true }
     );
+
+    if (!updatedDev) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Développeur non trouvé" 
+      });
+    }
+
+    console.log("✅ Profil développeur mis à jour:", updatedDev.email);
 
     res.json({
       success: true,
-      token,
+      message: "Profil mis à jour avec succès",
       developer: {
-        id: dev._id,
-        name: dev.name,
-        email: dev.email,
-        skills: dev.skills,
-        phone: dev.phone,
-        address: dev.address,
-        bio: dev.bio,
-      },
+        id: updatedDev._id,
+        name: updatedDev.name,
+        email: updatedDev.email,
+        skills: updatedDev.skills,
+        bio: updatedDev.bio,
+        phone: updatedDev.phone,
+        address: updatedDev.address
+      }
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erreur serveur lors de la connexion" });
+
+  } catch (error) {
+    console.error("❌ Erreur mise à jour profil:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Erreur serveur lors de la mise à jour du profil" 
+    });
   }
 });
 
@@ -232,11 +383,11 @@ app.put("/api/admin/profile/:id", async (req, res) => {
 });
 
 // =========================
-// US5 : Liste des Développeurs
+// US5 : Liste des Développeurs AVEC BIO
 // =========================
 app.get("/api/admin/developers", async (req, res) => {
   try {
-    const devs = await Developer.find();
+    const devs = await Developer.find().select('-password');
     res.json({ success: true, data: devs });
   } catch (err) {
     console.error(err);
@@ -249,11 +400,11 @@ app.get("/api/admin/developers", async (req, res) => {
 // =========================
 app.put("/api/admin/developers/:id", async (req, res) => {
   try {
-    const { name, email, skills, phone, address } = req.body;
+    const { name, email, skills, bio, phone, address } = req.body;
 
     const updatedDev = await Developer.findByIdAndUpdate(
       req.params.id,
-      { name, email, skills, phone, address },
+      { name, email, skills, bio, phone, address },
       { new: true }
     );
 
@@ -289,7 +440,7 @@ app.delete("/api/admin/developers/:id", async (req, res) => {
 });
 
 // =========================
-// 🏢 ORGANIZATION AUTHENTICATION
+// 🏢 Inscription ORGANIZATION 
 // =========================
 app.post("/api/org/signup", async (req, res) => {
   try {
@@ -341,53 +492,81 @@ app.post("/api/org/signup", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-app.post("/api/org/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const org = await Organization.findOne({ email });
-
-    if (!org) return res.status(401).json({ message: "Organisation non trouvée" });
-
-    const isMatch = await bcrypt.compare(password, org.password);
-    if (!isMatch) return res.status(401).json({ message: "Mot de passe incorrect" });
-
-    const token = jwt.sign(
-      { id: org._id, email: org.email, role: "organization" },
-      "votre_secret_key",
-      { expiresIn: "24h" }
-    );
-
-    res.json({
-      success: true,
-      token,
-      organization: {
-        id: org._id,
-        name: org.name,
-        email: org.email,
-        industry: org.industry,
-        size: org.size,
-        website: org.website
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-});
-
 // =========================
 // 💼 JOB OFFERS MANAGEMENT
 // =========================
 
-// Créer une offre de poste
+// ⚠️ IMPORTANT: Les routes spécifiques AVANT les routes avec paramètres dynamiques
+
+// 1️⃣ Récupérer TOUTES les offres (pour la page commune) - DOIT ÊTRE EN PREMIER
+app.get("/api/joboffers/all", async (req, res) => {
+  try {
+    console.log("📋 Récupération de toutes les offres...");
+    
+    const jobOffers = await JobOffer.find()
+      .populate('organization', 'name email industry website description size')
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ ${jobOffers.length} offre(s) trouvée(s)`);
+    
+    // Log pour debug - voir le contenu
+    jobOffers.forEach(offer => {
+      console.log(`  - ${offer.title} | Org: ${offer.organization?.name || 'NON DÉFINIE'} | Status: ${offer.status}`);
+    });
+
+    res.json({
+      success: true,
+      jobOffers
+    });
+  } catch (error) {
+    console.error("❌ Erreur récupération toutes les offres:", error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
+// 2️⃣ Récupérer les offres d'une organisation spécifique
+app.get("/api/joboffers/organization/:orgId", async (req, res) => {
+  try {
+    console.log("📋 Récupération des offres de l'organisation:", req.params.orgId);
+    
+    const jobOffers = await JobOffer.find({ organization: req.params.orgId })
+      .populate('organization', 'name email industry')
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ ${jobOffers.length} offre(s) trouvée(s) pour cette organisation`);
+
+    res.json({
+      success: true,
+      jobOffers
+    });
+  } catch (error) {
+    console.error("Erreur récupération offres:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 3️⃣ Créer une offre de poste
 app.post("/api/joboffers", async (req, res) => {
   try {
     const { title, description, requiredSkills, location, employmentType, salaryRange, organizationId } = req.body;
 
+    console.log("📝 Création d'offre - OrganizationId reçu:", organizationId);
+
     if (!title || !description || !organizationId) {
       return res.status(400).json({ error: "Titre, description et organisation requis" });
     }
+
+    // Vérifier que l'organisation existe
+    const orgExists = await Organization.findById(organizationId);
+    if (!orgExists) {
+      console.error("❌ Organisation non trouvée:", organizationId);
+      return res.status(404).json({ error: "Organisation non trouvée" });
+    }
+
+    console.log("✅ Organisation trouvée:", orgExists.name);
 
     const jobOffer = await JobOffer.create({
       title,
@@ -400,42 +579,32 @@ app.post("/api/joboffers", async (req, res) => {
       status: "active"
     });
 
+    console.log("✅ Offre créée avec succès:", jobOffer._id);
+
+    // Populate l'organisation avant de renvoyer
+    const populatedOffer = await JobOffer.findById(jobOffer._id)
+      .populate('organization', 'name email industry');
+
     res.status(201).json({
       success: true,
       message: "Offre créée avec succès",
-      jobOffer
+      jobOffer: populatedOffer
     });
 
   } catch (error) {
-    console.error("Erreur création offre:", error);
+    console.error("❌ Erreur création offre:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Récupérer les offres d'une organisation
-app.get("/api/joboffers/organization/:orgId", async (req, res) => {
-  try {
-    const jobOffers = await JobOffer.find({ organization: req.params.orgId })
-      .sort({ createdAt: -1 });
-
-    res.json({
-      success: true,
-      jobOffers
-    });
-  } catch (error) {
-    console.error("Erreur récupération offres:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Modifier une offre
+// 4️⃣ Modifier une offre
 app.put("/api/joboffers/:id", async (req, res) => {
   try {
     const updatedOffer = await JobOffer.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
-    );
+    ).populate('organization', 'name email industry');
 
     if (!updatedOffer) {
       return res.status(404).json({ error: "Offre non trouvée" });
@@ -452,7 +621,7 @@ app.put("/api/joboffers/:id", async (req, res) => {
   }
 });
 
-// Supprimer une offre
+// 5️⃣ Supprimer une offre
 app.delete("/api/joboffers/:id", async (req, res) => {
   try {
     const deletedOffer = await JobOffer.findByIdAndDelete(req.params.id);
@@ -471,6 +640,251 @@ app.delete("/api/joboffers/:id", async (req, res) => {
   }
 });
 
+// 6️⃣ Récupérer une offre spécifique par ID - DOIT ÊTRE EN DERNIER
+app.get("/api/joboffers/:id", async (req, res) => {
+  try {
+    const jobOffer = await JobOffer.findById(req.params.id)
+      .populate('organization', 'name email industry website description');
+
+    if (!jobOffer) {
+      return res.status(404).json({ 
+        success: false,
+        error: "Offre non trouvée" 
+      });
+    }
+
+    res.json({
+      success: true,
+      jobOffer
+    });
+  } catch (error) {
+    console.error("Erreur récupération offre:", error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
+
+// =========================
+// 📬 APPLICATION ROUTES - COMPLÈTES ET CORRIGÉES
+// =========================
+
+// 🆕 POST : Candidature enrichie
+app.post("/api/applications/enriched", async (req, res) => {
+  try {
+    const {
+      jobOfferId,
+      developerId,
+      coverLetter,
+      expectedSalary,
+      availabilityDate,
+      portfolioUrl,
+      resumeUrl
+    } = req.body;
+
+    console.log("📥 Candidature enrichie reçue");
+
+    if (!jobOfferId || !developerId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Données manquantes" 
+      });
+    }
+
+    const jobOffer = await JobOffer.findById(jobOfferId);
+    if (!jobOffer) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Offre non trouvée" 
+      });
+    }
+
+    const existingApp = await Application.findOne({
+      jobOffer: jobOfferId,
+      developer: developerId
+    });
+
+    if (existingApp) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Déjà postulé" 
+      });
+    }
+
+    const application = new Application({
+      jobOffer: jobOfferId,
+      developer: developerId,
+      organization: jobOffer.organization,
+      coverLetter: coverLetter || "",
+      expectedSalary: expectedSalary || 0,
+      availabilityDate: availabilityDate || "",
+      portfolioUrl: portfolioUrl || "",
+      resumeUrl: resumeUrl || "",
+      status: "pending"
+    });
+
+    await application.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Candidature envoyée",
+      application: application
+    });
+
+  } catch (error) {
+    console.error("❌ Erreur:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Erreur serveur" 
+    });
+  }
+});
+
+// 📋 GET : Candidatures d'un développeur
+app.get("/api/applications/developer/:id", async (req, res) => {
+  try {
+    const applications = await Application.find({ 
+      developer: req.params.id 
+    })
+      .populate("jobOffer", "title description location employmentType")
+      .populate("organization", "name industry")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      applications: applications
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 🏢 GET : Candidatures d'une organisation
+app.get("/api/applications/organization/:id", async (req, res) => {
+  try {
+    const applications = await Application.find({ 
+      organization: req.params.id 
+    })
+      .populate("developer", "name email skills bio phone address")
+      .populate("jobOffer", "title location employmentType")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      applications: applications
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 👑 GET : TOUTES les candidatures (pour l'admin) - NOUVELLE ROUTE
+app.get("/api/applications/all", async (req, res) => {
+  try {
+    console.log("🔄 Route /api/applications/all appelée");
+    
+    // Test simple d'abord
+    const test = await Application.find().limit(1);
+    console.log("✅ Test Application.find() réussi");
+    
+    const applications = await Application.find()
+      .populate("developer", "name email skills")
+      .populate("jobOffer", "title organization")
+      .populate("organization", "name email")
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ ${applications.length} candidature(s) trouvée(s)`);
+
+    res.json({
+      success: true,
+      count: applications.length,
+      applications: applications
+    });
+  } catch (error) {
+    console.error("🔴 ERREUR dans /api/applications/all:", error.message);
+    console.error("Stack trace:", error.stack);
+    res.status(500).json({ 
+      success: false,
+      error: "Erreur serveur: " + error.message
+    });
+  }
+});
+
+// 👁️ GET : Une candidature complète
+app.get("/api/applications/:id", async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id)
+      .populate("developer", "name email skills bio phone address")
+      .populate("jobOffer", "title description location employmentType")
+      .populate("organization", "name email industry");
+
+    if (!application) {
+      return res.status(404).json({ error: "Non trouvée" });
+    }
+
+    res.json({
+      success: true,
+      application: application
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ✏️ PUT : Mettre à jour le statut
+app.put("/api/applications/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    const updateData = { status };
+    
+    if (status === "reviewed") {
+      updateData.viewedByOrganization = true;
+    }
+
+    const updatedApp = await Application.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedApp) {
+      return res.status(404).json({ error: "Non trouvée" });
+    }
+
+    res.json({
+      success: true,
+      message: "Statut mis à jour",
+      application: updatedApp
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 🔍 GET : Vérifier si déjà postulé
+app.get("/api/applications/check/:developerId/:jobOfferId", async (req, res) => {
+  try {
+    const application = await Application.findOne({
+      developer: req.params.developerId,
+      jobOffer: req.params.jobOfferId
+    });
+
+    res.json({
+      success: true,
+      hasApplied: !!application
+    });
+  } catch (error) {
+    console.error("Erreur:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 // =========================
 // 🚀 Lancer le serveur
 // =========================
