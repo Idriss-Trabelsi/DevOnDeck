@@ -1,4 +1,4 @@
-// frontend/src/components/MatchingDashboard.jsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "../styles/MatchingDashboard.css";
@@ -7,15 +7,16 @@ export default function MatchingDashboard() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const [jobOffer, setJobOffer] = useState(null);
-  const [developers, setDevelopers] = useState([]);
+  const [candidates, setCandidates] = useState([]); // Renommé de developers à candidates
   const [loading, setLoading] = useState(true);
   const [orgData, setOrgData] = useState(null);
+  const [stats, setStats] = useState(null);
   
   // Filtres
   const [skillFilter, setSkillFilter] = useState("");
   const [minScoreFilter, setMinScoreFilter] = useState(0);
+  const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("score");
-  const [showSuggestions, setShowSuggestions] = useState(true);
 
   useEffect(() => {
     checkAuthAndFetch();
@@ -32,7 +33,8 @@ export default function MatchingDashboard() {
 
     setOrgData(data);
     await fetchJobOffer();
-    await fetchMatchingDevelopers();
+    await fetchCandidates(); // Renommé
+    await fetchStats();
   };
 
   const fetchJobOffer = async () => {
@@ -48,75 +50,60 @@ export default function MatchingDashboard() {
     }
   };
 
-  const fetchMatchingDevelopers = async () => {
+  // NOUVELLE FONCTION : Récupérer les candidats (développeurs qui ont postulé)
+  const fetchCandidates = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/joboffers/${jobId}/matching`);
+      const res = await fetch(`http://localhost:5000/api/joboffers/${jobId}/matching/candidates`);
       const data = await res.json();
       
+      console.log("📊 Candidats reçus:", data);
+      
       if (data.success) {
-        setDevelopers(data.developers || []);
+        setCandidates(data.developers || []);
       }
     } catch (error) {
-      console.error("Erreur matching:", error);
+      console.error("Erreur chargement candidats:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchFilteredDevelopers = async () => {
+  const fetchStats = async () => {
     try {
-      let url = `http://localhost:5000/api/developers/filter?`;
+      const res = await fetch(`http://localhost:5000/api/joboffers/${jobId}/applications/stats`);
+      const data = await res.json();
+      
+      if (data.success) {
+        setStats(data.stats);
+      }
+    } catch (error) {
+      console.error("Erreur statistiques:", error);
+    }
+  };
+
+  // Filtrage des candidats
+  const fetchFilteredCandidates = async () => {
+    try {
+      setLoading(true);
+      let url = `http://localhost:5000/api/joboffers/${jobId}/candidates/filter?`;
       const params = new URLSearchParams();
       
       if (skillFilter) params.append('skills', skillFilter);
       if (minScoreFilter > 0) params.append('minScore', minScoreFilter);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
       
       const res = await fetch(url + params.toString());
       const data = await res.json();
       
       if (data.success) {
-        // Recalculer le matching pour les développeurs filtrés
-        const filteredWithMatching = data.developers.map(developer => {
-          if (jobOffer) {
-            const matching = calculateMatching(developer, jobOffer);
-            return { ...developer, ...matching };
-          }
-          return developer;
-        });
-        
-        // Trier selon le critère
-        const sorted = filteredWithMatching.sort((a, b) => {
-          if (sortBy === "score") return b.matchingScore - a.matchingScore;
-          if (sortBy === "name") return a.name.localeCompare(b.name);
-          return 0;
-        });
-        
-        setDevelopers(sorted);
+        setCandidates(data.developers || []);
       }
     } catch (error) {
       console.error("Erreur filtre:", error);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const calculateMatching = (developer, job) => {
-    const devSkills = developer.skills ? developer.skills.toLowerCase().split(',').map(s => s.trim()) : [];
-    const jobSkills = job.requiredSkills || [];
-    const jobSkillsLower = jobSkills.map(s => s.toLowerCase().trim());
-    
-    const matched = devSkills.filter(skill => 
-      jobSkillsLower.some(jobSkill => skill.includes(jobSkill) || jobSkill.includes(skill))
-    );
-    
-    const score = jobSkills.length > 0 
-      ? Math.round((matched.length / jobSkills.length) * 100)
-      : 0;
-    
-    return {
-      matchingScore: score,
-      matchedSkills: matched,
-      missingSkills: jobSkillsLower.filter(js => !matched.some(s => s.includes(js)))
-    };
   };
 
   const getScoreColor = (score) => {
@@ -125,21 +112,54 @@ export default function MatchingDashboard() {
     return "low";
   };
 
-  const handleViewDeveloper = (developerId) => {
-    navigate(`/developer/profile/${developerId}`);
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'pending': return 'status-pending';
+      case 'reviewed': return 'status-reviewed';
+      case 'accepted': return 'status-accepted';
+      case 'rejected': return 'status-rejected';
+      default: return '';
+    }
   };
 
-  const handleContactDeveloper = (developer) => {
-    // Logique de contact
-    console.log("Contacter:", developer.email);
-    alert(`Contacter ${developer.name} à ${developer.email}`);
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'pending': return '⏳ En attente';
+      case 'reviewed': return '👁️ Consulté';
+      case 'accepted': return '✅ Accepté';
+      case 'rejected': return '❌ Refusé';
+      default: return status;
+    }
+  };
+
+  const handleViewApplication = (applicationId) => {
+    navigate(`/org/applications?applicationId=${applicationId}`);
+  };
+
+  const handleUpdateStatus = async (applicationId, newStatus) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/applications/${applicationId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        alert(`Statut mis à jour: ${getStatusText(newStatus)}`);
+        fetchCandidates(); // Recharger les données
+      }
+    } catch (error) {
+      console.error("Erreur mise à jour statut:", error);
+    }
   };
 
   if (loading) {
     return (
       <div className="loading-screen">
         <div className="loader-spinner"></div>
-        <p>Calcul des correspondances...</p>
+        <p>Analyse des candidats...</p>
       </div>
     );
   }
@@ -153,8 +173,17 @@ export default function MatchingDashboard() {
             ← Retour au dashboard
           </button>
           <div className="header-title">
-            <h1>🎯 Matching pour : {jobOffer?.title}</h1>
-            <p>Compétences recherchées: {jobOffer?.requiredSkills?.join(', ') || "Aucune"}</p>
+            <h1>🎯 Matching des candidats : {jobOffer?.title}</h1>
+            <p>{candidates.length} candidat(s) ayant postulé</p>
+            <div className="header-stats">
+              {stats && (
+                <div className="stats-chips">
+                  <span className="stat-chip total">Total: {stats.total}</span>
+                  <span className="stat-chip pending">En attente: {stats.byStatus?.pending || 0}</span>
+                  <span className="stat-chip reviewed">Consultés: {stats.byStatus?.reviewed || 0}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -165,10 +194,10 @@ export default function MatchingDashboard() {
           <h3>🔍 Filtres avancés</h3>
           
           <div className="filter-group">
-            <label>Compétences spécifiques</label>
+            <label>Compétences</label>
             <input
               type="text"
-              placeholder="React, Node.js, MongoDB..."
+              placeholder="React, Node.js..."
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
               className="filter-input"
@@ -185,11 +214,21 @@ export default function MatchingDashboard() {
               onChange={(e) => setMinScoreFilter(parseInt(e.target.value))}
               className="score-slider"
             />
-            <div className="score-labels">
-              <span>0%</span>
-              <span>50%</span>
-              <span>100%</span>
-            </div>
+          </div>
+
+          <div className="filter-group">
+            <label>Statut de candidature</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="reviewed">Consultés</option>
+              <option value="accepted">Acceptés</option>
+              <option value="rejected">Refusés</option>
+            </select>
           </div>
 
           <div className="filter-group">
@@ -200,18 +239,20 @@ export default function MatchingDashboard() {
               className="filter-select"
             >
               <option value="score">Score de matching</option>
+              <option value="date">Date de candidature</option>
               <option value="name">Nom</option>
             </select>
           </div>
 
           <div className="filter-actions">
-            <button className="apply-filters-btn" onClick={fetchFilteredDevelopers}>
+            <button className="apply-filters-btn" onClick={fetchFilteredCandidates}>
               Appliquer les filtres
             </button>
             <button className="reset-filters-btn" onClick={() => {
               setSkillFilter("");
               setMinScoreFilter(0);
-              fetchMatchingDevelopers();
+              setStatusFilter("all");
+              fetchCandidates();
             }}>
               Réinitialiser
             </button>
@@ -220,123 +261,141 @@ export default function MatchingDashboard() {
 
         {/* Statistiques */}
         <div className="stats-card">
-          <h3>📊 Statistiques de matching</h3>
-          <div className="stats-grid">
-            <div className="stat-item">
-              <div className="stat-number">{developers.length}</div>
-              <div className="stat-label">Développeurs analysés</div>
+          <h3>📊 Analyse des candidats</h3>
+          
+          <div className="matching-stats">
+            <div className="stat-row">
+              <span className="stat-label">Candidats total:</span>
+              <span className="stat-value">{candidates.length}</span>
             </div>
-            <div className="stat-item">
-              <div className="stat-number">
-                {developers.length > 0 
-                  ? Math.round(developers.reduce((acc, dev) => acc + (dev.matchingScore || 0), 0) / developers.length)
+            
+            <div className="stat-row">
+              <span className="stat-label">Score moyen:</span>
+              <span className="stat-value">
+                {candidates.length > 0 
+                  ? Math.round(candidates.reduce((acc, c) => acc + (c.matchingScore || 0), 0) / candidates.length)
                   : 0}%
-              </div>
-              <div className="stat-label">Score moyen</div>
+              </span>
             </div>
-            <div className="stat-item">
-              <div className="stat-number">
-                {developers.filter(d => (d.matchingScore || 0) >= 80).length}
-              </div>
-              <div className="stat-label">Top matches</div>
+            
+            <div className="stat-row">
+              <span className="stat-label">Top matches (≥80%):</span>
+              <span className="stat-value high">
+                {candidates.filter(c => (c.matchingScore || 0) >= 80).length}
+              </span>
+            </div>
+            
+            <div className="stat-row">
+              <span className="stat-label">Matches moyens (50-80%):</span>
+              <span className="stat-value medium">
+                {candidates.filter(c => (c.matchingScore || 0) >= 50 && (c.matchingScore || 0) < 80).length}
+              </span>
             </div>
           </div>
+          
+          {jobOffer?.requiredSkills && jobOffer.requiredSkills.length > 0 && (
+            <div className="required-skills">
+              <h4>Compétences recherchées:</h4>
+              <div className="skills-list">
+                {jobOffer.requiredSkills.map((skill, idx) => (
+                  <span key={idx} className="required-skill">{skill}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Liste des développeurs */}
-      <div className="developers-list">
+      {/* Liste des candidats */}
+      <div className="candidates-list">
         <div className="list-header">
-          <h2>🧑‍💻 Développeurs correspondants ({developers.length})</h2>
-          <div className="view-toggle">
-            <button 
-              className={`view-btn ${showSuggestions ? 'active' : ''}`}
-              onClick={() => setShowSuggestions(true)}
-            >
-              Suggestions intelligentes
-            </button>
-            <button 
-              className={`view-btn ${!showSuggestions ? 'active' : ''}`}
-              onClick={() => setShowSuggestions(false)}
-            >
-              Liste complète
-            </button>
+          <h2>🧑‍💻 Candidats correspondants ({candidates.length})</h2>
+          <div className="sort-info">
+            Trié par: {sortBy === 'score' ? 'Score de matching' : 
+                      sortBy === 'date' ? 'Date de candidature' : 'Nom'}
           </div>
         </div>
 
-        {developers.length === 0 ? (
+        {candidates.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🔍</div>
-            <h3>Aucun développeur trouvé</h3>
-            <p>Ajustez vos filtres ou modifiez les compétences recherchées</p>
+            <div className="empty-icon">📭</div>
+            <h3>Aucun candidat trouvé</h3>
+            <p>Aucun développeur n'a postulé à cette offre ou les filtres sont trop restrictifs</p>
+            <button 
+              className="btn-view-applications"
+              onClick={() => navigate(`/org/applications`)}
+            >
+              Voir toutes les candidatures
+            </button>
           </div>
         ) : (
-          <div className="developers-grid">
-            {developers.map((developer) => (
-              <div key={developer._id} className="developer-card">
+          <div className="candidates-grid">
+            {candidates.map((candidate) => (
+              <div key={candidate._id} className="candidate-card">
                 <div className="card-header">
-                  <div className="dev-avatar">
-                    {developer.name?.charAt(0).toUpperCase() || "D"}
+                  <div className="candidate-avatar">
+                    {candidate.name?.charAt(0).toUpperCase() || "C"}
                   </div>
-                  <div className="dev-info">
-                    <h3>{developer.name}</h3>
-                    <p className="dev-email">{developer.email}</p>
+                  <div className="candidate-info">
+                    <h3>{candidate.name}</h3>
+                    <p className="candidate-email">{candidate.email}</p>
+                    <div className="candidate-meta">
+                      <span className="application-date">
+                        Postulé le: {new Date(candidate.applicationDate).toLocaleDateString('fr-FR')}
+                      </span>
+                      <span className={`application-status ${getStatusColor(candidate.applicationStatus)}`}>
+                        {getStatusText(candidate.applicationStatus)}
+                      </span>
+                    </div>
                   </div>
-                  <div className={`score-badge ${getScoreColor(developer.matchingScore || 0)}`}>
-                    <span className="score-number">{developer.matchingScore || 0}%</span>
+                  <div className={`score-badge ${getScoreColor(candidate.matchingScore || 0)}`}>
+                    <span className="score-number">{candidate.matchingScore || 0}%</span>
                     <span className="score-label">Match</span>
                   </div>
                 </div>
 
                 <div className="card-content">
-                  {/* Compétences */}
-                  <div className="skills-section">
-                    <h4>🛠️ Compétences</h4>
-                    <div className="skills-tags">
-                      {developer.skills?.split(',').slice(0, 5).map((skill, idx) => {
-                        const isMatched = developer.matchedSkills?.includes(skill.trim().toLowerCase());
-                        return (
-                          <span key={idx} className={`skill-tag ${isMatched ? 'matched' : ''}`}>
-                            {skill.trim()}
-                            {isMatched && <span className="match-indicator">✓</span>}
-                          </span>
-                        );
-                      })}
-                      {developer.skills?.split(',').length > 5 && (
-                        <span className="skill-tag more">
-                          +{developer.skills.split(',').length - 5}
+                  {/* Compétences et matching */}
+                  <div className="matching-details">
+                    <div className="matching-breakdown">
+                      <div className="breakdown-item">
+                        <span className="breakdown-label">Compétences correspondantes:</span>
+                        <span className="breakdown-value">
+                          {candidate.matchedSkills?.length || 0} / {jobOffer?.requiredSkills?.length || 0}
                         </span>
+                      </div>
+                      
+                      {candidate.matchedSkills && candidate.matchedSkills.length > 0 && (
+                        <div className="matched-skills">
+                          <span className="skills-label">✓ Correspondances:</span>
+                          <div className="skills-tags">
+                            {candidate.matchedSkills.slice(0, 5).map((skill, idx) => (
+                              <span key={idx} className="skill-tag matched">{skill}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {candidate.missingSkills && candidate.missingSkills.length > 0 && (
+                        <div className="missing-skills">
+                          <span className="skills-label">✗ Manquantes:</span>
+                          <div className="skills-tags">
+                            {candidate.missingSkills.slice(0, 3).map((skill, idx) => (
+                              <span key={idx} className="skill-tag missing">{skill}</span>
+                            ))}
+                            {candidate.missingSkills.length > 3 && (
+                              <span className="skill-tag more">+{candidate.missingSkills.length - 3}</span>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* Analyse de matching */}
-                  <div className="matching-analysis">
-                    <div className="analysis-row">
-                      <span className="analysis-label">Correspondances:</span>
-                      <span className="analysis-value">
-                        {developer.matchedSkills?.length || 0} / {jobOffer?.requiredSkills?.length || 0}
-                      </span>
-                    </div>
                     
-                    {developer.missingSkills && developer.missingSkills.length > 0 && (
-                      <div className="analysis-row">
-                        <span className="analysis-label warning">Compétences manquantes:</span>
-                        <div className="missing-skills">
-                          {developer.missingSkills.slice(0, 3).map((skill, idx) => (
-                            <span key={idx} className="missing-tag">{skill}</span>
-                          ))}
-                          {developer.missingSkills.length > 3 && (
-                            <span className="missing-tag more">+{developer.missingSkills.length - 3}</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {developer.bio && (
-                      <div className="analysis-row">
-                        <span className="analysis-label">Bio:</span>
-                        <p className="bio-preview">{developer.bio.substring(0, 100)}...</p>
+                    {/* Bio */}
+                    {candidate.bio && (
+                      <div className="candidate-bio">
+                        <h4>📝 À propos</h4>
+                        <p>{candidate.bio.substring(0, 150)}...</p>
                       </div>
                     )}
                   </div>
@@ -344,19 +403,30 @@ export default function MatchingDashboard() {
                   {/* Actions */}
                   <div className="card-actions">
                     <button 
-                      className="action-btn view-profile"
-                      onClick={() => handleViewDeveloper(developer._id)}
+                      className="action-btn view-application"
+                      onClick={() => handleViewApplication(candidate.applicationId)}
                     >
-                      👁️ Voir profil
+                      📋 Voir candidature
                     </button>
+                    
+                    <div className="status-actions">
+                      <select 
+                        className="status-select"
+                        value={candidate.applicationStatus}
+                        onChange={(e) => handleUpdateStatus(candidate.applicationId, e.target.value)}
+                      >
+                        <option value="pending">⏳ En attente</option>
+                        <option value="reviewed">👁️ Marquer comme vu</option>
+                        <option value="accepted">✅ Accepter</option>
+                        <option value="rejected">❌ Refuser</option>
+                      </select>
+                    </div>
+                    
                     <button 
                       className="action-btn contact"
-                      onClick={() => handleContactDeveloper(developer)}
+                      onClick={() => window.location.href = `mailto:${candidate.email}`}
                     >
                       📧 Contacter
-                    </button>
-                    <button className="action-btn save">
-                      💾 Sauvegarder
                     </button>
                   </div>
                 </div>
@@ -366,38 +436,51 @@ export default function MatchingDashboard() {
         )}
       </div>
 
-      {/* Suggestions intelligentes */}
-      {showSuggestions && developers.filter(d => (d.matchingScore || 0) >= 70).length > 0 && (
-        <div className="suggestions-section">
-          <h2>💎 Top suggestions</h2>
+      {/* Top suggestions */}
+      {candidates.filter(c => (c.matchingScore || 0) >= 80).length > 0 && (
+        <div className="top-suggestions">
+          <h2>💎 Top candidats (≥80% de match)</h2>
           <div className="suggestions-grid">
-            {developers
-              .filter(d => (d.matchingScore || 0) >= 70)
+            {candidates
+              .filter(c => (c.matchingScore || 0) >= 80)
               .slice(0, 3)
-              .map((developer) => (
-                <div key={developer._id} className="suggestion-card">
+              .map((candidate) => (
+                <div key={candidate._id} className="suggestion-card">
                   <div className="suggestion-header">
                     <div className="suggestion-avatar">
-                      {developer.name?.charAt(0).toUpperCase()}
+                      {candidate.name?.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <h4>{developer.name}</h4>
+                      <h4>{candidate.name}</h4>
                       <div className="suggestion-score">
-                        <span className="score-highlight">{developer.matchingScore}%</span> de match
+                        <span className="score-highlight">{candidate.matchingScore}%</span> de match
+                      </div>
+                      <div className="suggestion-status">
+                        Statut: {getStatusText(candidate.applicationStatus)}
                       </div>
                     </div>
                   </div>
+                  
                   <div className="suggestion-skills">
-                    {developer.matchedSkills?.slice(0, 3).map((skill, idx) => (
+                    {candidate.matchedSkills?.slice(0, 3).map((skill, idx) => (
                       <span key={idx} className="suggestion-skill">✓ {skill}</span>
                     ))}
                   </div>
-                  <button 
-                    className="suggestion-btn"
-                    onClick={() => handleViewDeveloper(developer._id)}
-                  >
-                    Explorer ce profil
-                  </button>
+                  
+                  <div className="suggestion-actions">
+                    <button 
+                      className="suggestion-btn primary"
+                      onClick={() => handleUpdateStatus(candidate.applicationId, 'accepted')}
+                    >
+                      ✅ Accepter
+                    </button>
+                    <button 
+                      className="suggestion-btn secondary"
+                      onClick={() => handleViewApplication(candidate.applicationId)}
+                    >
+                      Voir détails
+                    </button>
+                  </div>
                 </div>
               ))}
           </div>

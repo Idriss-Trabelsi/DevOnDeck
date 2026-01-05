@@ -1,4 +1,3 @@
-/* src/styles/MatchingDashboard.css */
 
 :root {
   --primary: #6366f1;
@@ -104,6 +103,7 @@
   font-weight: 800;
   margin-bottom: 0.75rem;
   background: linear-gradient(135deg, var(--light) 0%, var(--primary-light) 100%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -283,6 +283,7 @@
   font-weight: 800;
   margin-bottom: 0.5rem;
   background: var(--gradient-primary);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -872,4 +873,235 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/*//////////////////////////////////////////////*/
+
+/* Styles spécifiques pour les candidats */
+.candidate-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.candidate-meta {
+  display: flex;
+  gap: 15px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.application-status {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-reviewed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-accepted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.matching-details {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.matching-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.breakdown-item:last-child {
+  border-bottom: none;
+}
+
+.breakdown-label {
+  font-weight: 500;
+  color: #333;
+}
+
+.breakdown-value {
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.matched-skills, .missing-skills {
+  margin-top: 10px;
+}
+
+.skills-label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.skill-tag.matched {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.skill-tag.missing {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.candidate-bio {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.candidate-bio h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.candidate-bio p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.status-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.status-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  color: #333;
+  font-size: 13px;
+  min-width: 180px;
+}
+
+.header-stats {
+  margin-top: 10px;
+}
+
+.stats-chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stat-chip.total {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.stat-chip.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.stat-chip.reviewed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.matching-stats {
+  margin: 20px 0;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #666;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #333;
+}
+
+.stat-value.high {
+  color: #166534;
+}
+
+.stat-value.medium {
+  color: #92400e;
+}
+
+.required-skills {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.required-skills h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.required-skill {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
 }
